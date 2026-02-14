@@ -16,18 +16,26 @@ uvicorn app.main:app --reload
 ## Структура проекта
 
 ```
-src/
-├── components/       # Переиспользуемые UI компоненты
-├── pages/           # Компоненты страниц (роутинг)
-├── services/        # API клиенты, HTTP запросы
-├── hooks/           # Кастомные React хуки
-├── store/           # Глобальное состояние (zustand)
-├── utils/           # Утилитарные функции
-├── types/           # TypeScript типы и интерфейсы
-├── constants/       # Константы приложения
-├── styles/          # Глобальные стили, темы MUI
-├── assets/          # Изображения, иконки, шрифты
-├── App.tsx          # Корневой компонент
-├── main.tsx         # Точка входа
-└── vite-env.d.ts    # Типы Vite
+my_project/
+├── app/
+│   ├── api/
+│   │   └── v1/
+│   │       └── users.py          # эндпоинты пользователей
+│   ├── core/
+│   │   ├── config.py             # настройки (настройки из .env, pydantic Settings)
+│   │   └── database.py           # engine, SessionLocal, get_db, Base
+│   ├── models/
+│   │   └── user.py               # SQLAlchemy модели (User, возможно другие)
+│   ├── schemas/
+│   │   └── user.py               # Pydantic схемы (UserBase, UserCreate, UserRead, UserUpdate и т.д.)
+│   ├── services/
+│   │   └── user_service.py       # бизнес-логика (часто называют service layer)
+│   ├── repositories/
+│   │   ├── user_repository.py    # CRUD-операции с пользователями
+│   │   └── product_repository.py # CRUD-операции с продуктами (пример другого репозитория)
+│   └── main.py                   # точка входа, создание FastAPI приложения, подключение роутеров
+├── tests/                        # тесты (pytest)
+├── migrations/                   # alembic миграции
+├── requirements.txt              # зависимости проекта
+└── Dockerfile                    # для контейнеризации
 ```
