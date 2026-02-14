@@ -1,5 +1,18 @@
 # React + TypeScript + Vite + Material UI 
 
+## Установка зависимостей и запуск
+Version: Node.js 22 и выше 
+
+Установка:
+```
+npm install
+```
+
+Запуск:
+```
+npm run dev
+```
+
 ## Структура проекта
 
 ```
@@ -16,5 +29,7 @@ src/
 ├── assets/          # Изображения, иконки, шрифты
 ├── App.tsx          # Корневой компонент
 ├── main.tsx         # Точка входа
+├── eslint.config    # Конфиг файл линтера
+├── package.json     # Зависимости и скрипты запуска
 └── vite-env.d.ts    # Типы Vite
 ```
