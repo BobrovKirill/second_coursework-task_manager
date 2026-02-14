@@ -9,5 +9,5 @@
  - Бобров Кирилл
 
 ## Стенк:
-Фронтенд - React + Material UI + Vite + TS
-Бекенд - Fast Api + Pydantic + PostgreSQL + Alembic + SQLAlchemy
+ - Фронтенд - React + Material UI + Vite + TS
+ - Бекенд - Fast Api + Pydantic + PostgreSQL + Alembic + SQLAlchemy
