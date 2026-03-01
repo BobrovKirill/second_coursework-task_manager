@@ -33,3 +33,64 @@ src/
 ├── package.json     # Зависимости и скрипты запуска
 └── vite-env.d.ts    # Типы Vite
 ```
+
+## Структура компонента
+```
+ComponentName/
+├── index.ts
+├── ComponentName.tsx
+└── style.module.css
+```
+### index.ts
+тут мы прописываем импорт компонента по default
+```tsx
+export { default } from './ComponentName.tsx'
+```
+Так же типы и статические данные которые экспортируются во вне компонента и функции
+```tsx
+export interface ComponentTypes {...}
+
+export const COMPONENT_DATA = ...
+
+export function componentFn () {...}
+```
+
+### ComponentName.tsx 
+Тут описывает структуру компонента и логику
+
+```tsx
+const ComponentName = () = {
+  function someFn () {...}
+
+  return (
+    ...
+  )
+}
+
+export default ComponentName;
+```
+
+### style.module.css
+тут описывает стили компонента в классическом css синтаксисе, название могут повторяться относительно других компонентов, но конфликтовать они не будут из за изоляции внутри компонента
+
+```css
+.root {
+    position: absolute;
+    top: 0;
+    left: 0;
+    
+    width: 100%;
+    height: 100%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+
+    font-size: 14px;
+    line-height: 22px;
+    color: tomato;
+}
+```
+
+Желательно делить стили отступом на логичные блоки например позиционирование / шрифты / цвета / сетка / размеры ( как в примере выше )

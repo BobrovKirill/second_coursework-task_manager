@@ -1,0 +1,28 @@
+.backButton {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.875rem;
+  transition: color 0.15s;
+}
+
+.backButton:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.successAlert {
+  border-radius: 12px ;
+  background: rgba(56, 189, 120, 0.15) ;
+  border: 1px solid rgba(56, 189, 120, 0.3) ;
+  color: rgba(255, 255, 255, 0.9) ;
+}
+
+.successAlert :global(.MuiAlert-icon) {
+  color: rgba(56, 189, 120, 0.9) ;
+}

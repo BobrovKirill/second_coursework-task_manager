@@ -1,6 +1,6 @@
 import { Container, Typography, Box } from '@mui/material';
 
-export const MainPage = () => {
+const MainPage = () => {
   return (
     <Container>
       <Box sx={{ marginTop: 4 }}>
@@ -14,3 +14,5 @@ export const MainPage = () => {
     </Container>
   );
 };
+
+export default MainPage;

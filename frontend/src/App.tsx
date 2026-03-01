@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import { AuthPage, MainPage } from './pages';
+import MainPage from './pages/MainPage';
+import AuthPage from './pages/AuthPage';
 import Layout from './components/Layout';
 import { ROUTES } from './constants/routes';
 

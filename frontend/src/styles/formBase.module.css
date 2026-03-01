@@ -1,0 +1,114 @@
+.title {
+  color: #fff ;
+  font-weight: 700 ;
+  letter-spacing: -0.02em ;
+  margin-bottom: 4px ;
+}
+
+.subtitle {
+  color: rgba(255, 255, 255, 0.45) ;
+  font-size: 0.875rem ;
+  margin-bottom: 24px ;
+}
+
+.field :global(.MuiOutlinedInput-root) {
+  color: #fff;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(10px);
+  transition: background 0.2s;
+}
+
+.field :global(.MuiOutlinedInput-root:hover) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.field :global(.MuiOutlinedInput-root.Mui-focused) {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.field :global(.MuiOutlinedInput-root fieldset) {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.field :global(.MuiOutlinedInput-root:hover fieldset) {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.field :global(.MuiOutlinedInput-root.Mui-focused fieldset) {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.field :global(.MuiInputLabel-root) {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.field :global(.MuiInputLabel-root.Mui-focused) {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.field :global(.MuiFormHelperText-root.Mui-error) {
+  color: rgba(255, 100, 100, 0.9);
+}
+
+.field :global(.MuiIconButton-root) {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.submitButton {
+  margin-top: 4px ;
+  padding: 12px ;
+  border-radius: 12px ;
+  background: linear-gradient(
+    135deg,
+    rgba(120, 119, 198, 0.8),
+    rgba(56, 189, 248, 0.8)
+  ) ;
+  border: 1px solid rgba(255, 255, 255, 0.25) ;
+  color: #fff ;
+  font-weight: 600 ;
+  letter-spacing: 0.05em ;
+  text-transform: none ;
+  font-size: 1rem ;
+  box-shadow: 0 4px 15px rgba(120, 119, 198, 0.4) ;
+  transition: all 0.2s ;
+}
+
+.submitButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(120, 119, 198, 1),
+    rgba(56, 189, 248, 1)
+  ) ;
+  box-shadow: 0 6px 20px rgba(120, 119, 198, 0.6) ;
+  transform: translateY(-1px);
+}
+
+.submitButton:active {
+  transform: translateY(0);
+}
+
+.submitButton:global(.Mui-disabled) {
+  background: rgba(255, 255, 255, 0.1) ;
+  color: rgba(255, 255, 255, 0.3) ;
+  box-shadow: none ;
+}
+
+.link {
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: color 0.15s;
+}
+
+.link:hover {
+  color: #fff;
+}
+
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.875rem;
+}
