@@ -5,7 +5,7 @@ from app.core.config import settings
 
 # Создаем асинхронный менеджер соединения с БД, выключить echo для прода
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.database_url,
     echo=True,
     future=True
 )

@@ -4,13 +4,13 @@
 Version: python 3.9
 
 Установка: список зависимостей содержиться в requirements.txt
-```
-pip install -r requirements.txt
+```bash
+pip install -r requirements.txt # устанавливаем зависимости
 ```
 
 Запуск:
-```
-uvicorn app.main:app --reload
+```bash
+uvicorn app.main:app --reload # запуск fast api сервера
 ```
 
 ## Структура проекта
@@ -38,4 +38,32 @@ my_project/
 ├── migrations/                   # alembic миграции
 ├── requirements.txt              # зависимости проекта
 └── Dockerfile                    # для контейнеризации
+```
+
+## Doker
+База данных вынесена в докер контейнер, для запуска, из корня проекта (не из /backend)
+```bash
+docker-compose up -d db # запускаем контейнер
+```
+
+## Миграции
+На проекте используется alembic
+### Начало работы и пошаговый алгоритм действий 
+```bash
+git pull # подтягиваем изменения
+alembic upgrade head # принимаем миграцию коллеги
+```
+После внесения изменения в структуру БД, выполняем миграцию и push'им
+```bash
+alembic revision --autogenerate -m "описание изменений" # коммитим изменения БД
+```
+далее
+```bash
+alembic upgrade head # принимаем миграцию коллеги
+```
+
+### Особености 
+локальный PostgreSQL может кофликтовать с портом с докером на порту 5432, для этого его надо оставить (особеность на мак, но если может пригодиться и для других ОС)
+```bash
+brew services stop postgresql@14
 ```
