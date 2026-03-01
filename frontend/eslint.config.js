@@ -1,13 +1,14 @@
 import antfu from '@antfu/eslint-config'
 
-export default antfu(
-    {
+export default antfu({
         ignores: [
             'dist/**',
             'node_modules/**',
             'public/**',
             '.vite/**',
-            'eslint.config.js'
+            'eslint.config.js',
+            '**/*.md',
+            '**/*.json',
         ],
 
         stylistic: {

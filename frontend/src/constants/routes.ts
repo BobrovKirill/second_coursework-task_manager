@@ -7,5 +7,7 @@ export const ROUTES = {
   PROJECT_MEMBERS: (id: number | string) => `/projects/${id}/members`,
   PROJECT_CREATE: '/projects',
   ADD_MEMBER: '/members',
-  PROFILE: '/users/me'
-} as const;
+  PROFILE: '/users/me',
+  CREATE_TASK_PATTERN: '/projects/:projectId/tasks/create',
+  CREATE_TASK: (projectId: number | string) => `/projects/${projectId}/tasks/create`,
+} as const

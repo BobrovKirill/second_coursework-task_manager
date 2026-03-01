@@ -8,6 +8,8 @@ import Layout from './components/Layout'
 import { ROUTES } from './constants/routes'
 import styles from './styles/app.module.css'
 import ProfilePage from "./pages/ProfilePage";
+import ProjectBoardPage from './pages/ProjectBoardPage';
+import CreateTaskPage from './pages/CreateTaskPage';
 
 const theme = createTheme({
   palette: {
@@ -28,7 +30,9 @@ function App() {
               <Route path={ROUTES.MAIN} element={<MainPage />} />
 
               <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
-              
+              <Route path={ROUTES.BOARD} element={<ProjectBoardPage />} />
+              <Route path={ROUTES.CREATE_TASK} element={<CreateTaskPage />} />
+
               <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
                 <Route index element={<Board />} />
                 <Route path="board" element={<Board />} />

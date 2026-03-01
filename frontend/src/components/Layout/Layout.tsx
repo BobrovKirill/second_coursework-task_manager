@@ -1,13 +1,13 @@
+import type { ApiErrorResponse } from '../../hooks/useApi.ts'
 import { CircularProgress } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
-import useApi, {type ApiErrorResponse} from '../../hooks/useApi.ts'
+import { useUserStore } from '../../store/useUserStory.ts'
 import { getToken } from '../../utils/cookie.ts'
-import {useAlertModal} from "../AlertModal";
+import { useAlertModal } from '../AlertModal'
+import Header from '../Header'
 import styles from './style.module.css'
-import Header from "../Header";
-import {useUserStore} from "../../store/useUserStory.ts";
 
 function Layout() {
   const user = useUserStore()
@@ -42,7 +42,7 @@ function Layout() {
   }
 
   return (
-    <main className={ styles.layout }>
+    <main className={styles.layout}>
       <Header />
 
       <Outlet />
