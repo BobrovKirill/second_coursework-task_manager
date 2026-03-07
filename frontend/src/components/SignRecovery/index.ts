@@ -1,1 +1,1 @@
-export { default } from './SignRecovery.tsx';
+export { default } from './SignRecovery.tsx'

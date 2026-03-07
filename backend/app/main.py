@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
-# Времено закоментировано, после поднятия БД вернуть !!!!
-# from app.api.v1.users import router as users
+from app.api.v1.users import router as users
+from app.api.v1.auth import router as auth
 
 # Создание приложения
 app = FastAPI(
@@ -22,9 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Подключение роутеров
-# Времено закоментировано, после поднятия БД вернуть !!!!
-# app.include_router(users.router, prefix=settings.API_V1_PREFIX)
+app.include_router(users, prefix=settings.API_V1_PREFIX)
+app.include_router(auth, prefix=settings.API_V1_PREFIX)
+
 
 
 @app.get("/")

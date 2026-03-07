@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from app.core.security import verify_password
+from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from passlib.context import CryptContext
@@ -18,6 +21,14 @@ class UserRepository:
     def _hash_password(password: str) -> str:
         """Хеширование пароля"""
         return pwd_context.hash(password)
+
+    async def authenticate(self, email: str, password: str) -> Optional[User]:
+        user = await self.get_by_email(email)
+        if not user:
+            return None
+        if not verify_password(password, user.hashed_password):
+            return None
+        return user
 
     async def get_by_id(self, user_id: int) -> User | None:
         """Получить пользователя по ID"""

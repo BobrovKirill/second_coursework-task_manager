@@ -94,3 +94,34 @@ export default ComponentName;
 ```
 
 Желательно делить стили отступом на логичные блоки например позиционирование / шрифты / цвета / сетка / размеры ( как в примере выше )
+
+## Fetch запросы
+Для запросов используется обертка useApi(), у которой есть методы post, get, put, delete
+```js
+const api = useApi()
+
+api.{ метод }('{url запроса}', { тело запроса (опционально )})
+
+// Пример
+
+api.post('/users/login', {name: 'user', password: '1234'})
+```
+Так же не забываем оборачивать в try catch
+```js
+// Пример
+const api = useApi()
+try {
+    await api.post('/users/login', {name: 'user', password: '1234'})
+} catch (e) {
+    // логика обработки ошибок
+}
+```
+
+## Модальный Alert 
+Компонент для оповещения юзера о ошибки или успехе операции - AlertModal, внутри себя содержит алерт material UI. Дефолтные настройки duration - 2 секунды, то есть через 2 секунды окно само пропадает, title - опционально, message - обязательно, type - "error" | "warning" | "info" | "success"
+```tsx
+// Вызов из функции
+  const { showAlertModal } = useAlertModal()
+
+  showAlertModal({ title: 'Ошибка', message })
+```

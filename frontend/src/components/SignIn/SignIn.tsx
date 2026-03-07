@@ -1,40 +1,56 @@
-import { useState } from 'react';
-import { Typography, TextField, Button, IconButton, InputAdornment, CircularProgress, Box } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import Sign, {type AuthView} from '../Sign';
-import base from '../../styles/formBase.module.css';
-import styles from './style.module.css';
+import type { SingErrorFetchTypes, SingFormTypes } from '../Sign'
+import type { SignInProps } from './index.ts'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes.ts'
+import useApi from '../../hooks/useApi.ts'
+import base from '../../styles/formBase.module.css'
+import { setToken } from '../../utils/cookie.ts'
+import { useAlertModal } from '../AlertModal'
+import Sign, { validateSignUpForm } from '../Sign'
+import styles from './style.module.css'
 
-interface SignInProps {
-  onNavigate: (view: AuthView) => void;
-}
+function SignIn({ onNavigate }: SignInProps) {
+  const [form, setForm] = useState<SingFormTypes>({ email: '', password: '' })
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<{ email?: string, password?: string }>({})
 
-const SignIn = ({ onNavigate }: SignInProps) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const set = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm(prev => ({ ...prev, [field]: e.target.value }))
 
-  const validate = () => {
-    const next: typeof errors = {};
-    if (!email) next.email = 'Введите email';
-    else if (!/\S+@\S+\.\S+/.test(email)) next.email = 'Некорректный email';
-    if (!password) next.password = 'Введите пароль';
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
+  const { showAlertModal } = useAlertModal()
+  const api = useApi()
+  const navigate = useNavigate()
 
   const handleSubmit = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      // TODO: вызов store/api
-      await new Promise(r => setTimeout(r, 1000));
-    } finally {
-      setLoading(false);
+    const fields = validateSignUpForm(form)
+    setErrors(fields)
+    const isValidate = !Object.keys(fields).length
+
+    if (!isValidate) {
+      return
     }
-  };
+
+    setLoading(true)
+    try {
+      const { access_token = '' } = await api.post('/auth/login/', form)
+      setToken(access_token)
+      showAlertModal({ title: 'Успешно', message: 'авторизация прошла успешно!', type: 'success' })
+      navigate(ROUTES.MAIN)
+    }
+    catch (error) {
+      const err = error as SingErrorFetchTypes
+      const message = err.detail || 'Что-то пошло не так...'
+      showAlertModal({ title: 'Ошибка', message })
+    }
+
+    finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <Sign>
@@ -45,8 +61,8 @@ const SignIn = ({ onNavigate }: SignInProps) => {
         <TextField
           label="Email"
           type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
+          value={form.email}
+          onChange={set('email')}
           error={!!errors.email}
           helperText={errors.email}
           fullWidth
@@ -55,8 +71,8 @@ const SignIn = ({ onNavigate }: SignInProps) => {
         <TextField
           label="Пароль"
           type={showPassword ? 'text' : 'password'}
-          value={password}
-          onChange={e => setPassword(e.target.value)}
+          value={form.password}
+          onChange={set('password')}
           error={!!errors.password}
           helperText={errors.password}
           fullWidth
@@ -90,13 +106,14 @@ const SignIn = ({ onNavigate }: SignInProps) => {
       </Box>
 
       <p className={base.footer}>
-        Нет аккаунта?{' '}
+        Нет аккаунта?
+        {' '}
         <span className={base.link} onClick={() => onNavigate('signUp')}>
           Зарегистрироваться
         </span>
       </p>
     </Sign>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn

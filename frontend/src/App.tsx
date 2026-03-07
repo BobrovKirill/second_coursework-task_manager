@@ -1,15 +1,15 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
-import MainPage from './pages/MainPage';
-import AuthPage from './pages/AuthPage';
-import Layout from './components/Layout';
-import { ROUTES } from './constants/routes';
+import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import Layout from './components/Layout'
+import { ROUTES } from './constants/routes'
+import AuthPage from './pages/AuthPage'
+import MainPage from './pages/MainPage'
 
 const theme = createTheme({
   palette: {
     mode: 'light',
   },
-});
+})
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
-  );
+  )
 }
 
-export default App;
+export default App

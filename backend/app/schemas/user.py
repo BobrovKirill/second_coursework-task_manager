@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from datetime import datetime
 
@@ -18,7 +19,7 @@ class UserCreate(UserBase):
 
 # Схема для обновления, наследуюем общий класс
 class UserUpdate(BaseModel):
-    email: EmailStr | None = None
+    email: Optional[EmailStr] = None
     username: str | None = Field(None, min_length=3, max_length=50)
     password: str | None = Field(None, min_length=8, max_length=100)
     is_active: bool | None = None

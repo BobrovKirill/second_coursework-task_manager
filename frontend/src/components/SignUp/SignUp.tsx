@@ -1,44 +1,52 @@
-import { useState } from 'react';
-import { Typography, TextField, Button, IconButton, InputAdornment, CircularProgress, Box } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import Sign, {type AuthView} from '../Sign';
-import base from '../../styles/formBase.module.css';
+import type { AuthView, SingErrorFetchTypes, SingFormTypes } from '../Sign'
+import { Visibility, VisibilityOff } from '@mui/icons-material'
+import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
+import { useState } from 'react'
+import useApi from '../../hooks/useApi.ts'
+import base from '../../styles/formBase.module.css'
+import { useAlertModal } from '../AlertModal'
+import Sign, { validateSignUpForm } from '../Sign'
 
 interface SignUpProps {
-  onNavigate: (view: AuthView) => void;
+  onNavigate: (view: AuthView) => void
 }
 
-const SignUp = ({ onNavigate }: SignUpProps) => {
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirm: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Partial<typeof form>>({});
+function SignUp({ onNavigate }: SignUpProps) {
+  const [form, setForm] = useState<SingFormTypes>({ username: '', email: '', password: '', confirm: '' })
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errors, setErrors] = useState<Partial<typeof form>>({})
+  const { showAlertModal } = useAlertModal()
+  const api = useApi()
 
   const set = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm(prev => ({ ...prev, [field]: e.target.value }));
-
-  const validate = () => {
-    const next: Partial<typeof form> = {};
-    if (!form.name.trim()) next.name = 'Введите имя';
-    if (!form.email) next.email = 'Введите email';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) next.email = 'Некорректный email';
-    if (!form.password) next.password = 'Введите пароль';
-    else if (form.password.length < 8) next.password = 'Минимум 8 символов';
-    if (form.password !== form.confirm) next.confirm = 'Пароли не совпадают';
-    setErrors(next);
-    return Object.keys(next).length === 0;
-  };
+    setForm(prev => ({ ...prev, [field]: e.target.value }))
 
   const handleSubmit = async () => {
-    if (!validate()) return;
-    setLoading(true);
-    try {
-      // TODO: вызов store/api
-      await new Promise(r => setTimeout(r, 1000));
-    } finally {
-      setLoading(false);
+    const fields = validateSignUpForm(form)
+    setErrors(fields)
+    const isValidate = !Object.keys(fields).length
+
+    if (!isValidate) {
+      return
     }
-  };
+
+    setLoading(true)
+    try {
+      await api.post('/users', form)
+      await new Promise(r => setTimeout(r, 1000))
+      showAlertModal({ title: 'Поздравляем!', message: 'Регистрация прошла успешно!', type: 'success' })
+      onNavigate('signIn')
+    }
+    catch (error) {
+      const err = error as SingErrorFetchTypes
+      const message = err.detail || 'Что-то пошло не так...'
+      showAlertModal({ title: 'Ошибка', message })
+    }
+    finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <Sign>
@@ -48,10 +56,10 @@ const SignUp = ({ onNavigate }: SignUpProps) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
           label="Имя"
-          value={form.name}
-          onChange={set('name')}
-          error={!!errors.name}
-          helperText={errors.name}
+          value={form.username}
+          onChange={set('username')}
+          error={!!errors.username}
+          helperText={errors.username}
           fullWidth
           className={base.field}
         />
@@ -107,13 +115,14 @@ const SignUp = ({ onNavigate }: SignUpProps) => {
       </Box>
 
       <p className={base.footer}>
-        Уже есть аккаунт?{' '}
+        Уже есть аккаунт?
+        {' '}
         <span className={base.link} onClick={() => onNavigate('signIn')}>
           Войти
         </span>
       </p>
     </Sign>
-  );
-};
+  )
+}
 
-export default SignUp;
+export default SignUp
