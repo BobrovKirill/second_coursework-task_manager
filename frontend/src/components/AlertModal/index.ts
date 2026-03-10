@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react'
-import { createContext } from 'react'
+import { createContext, useContext, type ReactNode } from 'react'
 
 export type AlertType = 'error' | 'warning' | 'info' | 'success'
 
@@ -23,7 +22,7 @@ export const DEFAULT_DURATION = 2000
 export const AlertModalContext = createContext<AlertModalContextValue | null>(null)
 
 export function useAlertModal(): AlertModalContextValue {
-  const ctx = use(AlertModalContext)
+  const ctx = useContext(AlertModalContext)
   if (!ctx) {
     throw new Error('useToast must be used within ToastProvider')
   }
