@@ -4,6 +4,7 @@ import Layout from './components/Layout'
 import { ROUTES } from './constants/routes'
 import AuthPage from './pages/AuthPage'
 import MainPage from './pages/MainPage'
+import styles from './styles/app.module.css'
 
 const theme = createTheme({
   palette: {
@@ -15,17 +16,19 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        <Routes>
-          <Route path={ROUTES.AUTH} element={<AuthPage />} />
+      <div className={styles.app}>
+        <BrowserRouter>
+          <Routes>
+            <Route path={ROUTES.AUTH} element={<AuthPage />} />
 
-          <Route element={<Layout />}>
-            <Route path={ROUTES.MAIN} element={<MainPage />} />
-          </Route>
+            <Route element={<Layout />}>
+              <Route path={ROUTES.MAIN} element={<MainPage />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to={ROUTES.MAIN} replace />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<Navigate to={ROUTES.MAIN} replace />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
     </ThemeProvider>
   )
 }

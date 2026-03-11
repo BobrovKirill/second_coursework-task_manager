@@ -10,10 +10,6 @@ function AuthPage() {
 
   return (
     <div className={styles.root}>
-      <div className={styles.orb1} />
-      <div className={styles.orb2} />
-      <div className={styles.orb3} />
-
       {view === 'signIn' && <SignIn onNavigate={setView} />}
       {view === 'signUp' && <SignUp onNavigate={setView} />}
       {view === 'signRecovery' && <SignRecovery onNavigate={setView} />}
