@@ -1,7 +1,7 @@
 from sqlalchemy import String, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-
+from typing import List
 from app.core.database import Base
 
 # Класс User соответсвует одной таблице в БД и содержит в себе:
@@ -25,3 +25,12 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # связи с проектом и участниками проекта
+    owned_projects: Mapped[List["Project"]] = relationship(
+        back_populates="owner", 
+        foreign_keys="Project.owner_id"
+    )
+    project_memberships: Mapped[List["ProjectMember"]] = relationship(
+        back_populates="member"
+    )

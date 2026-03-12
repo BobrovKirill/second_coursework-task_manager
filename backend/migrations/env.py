@@ -13,6 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.core.config import settings
 from app.core.database import Base
 from app.models.user import User
+from app.models.project import Project
+from app.models.project_member import ProjectMember
 print("DB URL:", settings.database_url)
 
 config = context.config

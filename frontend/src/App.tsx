@@ -1,9 +1,12 @@
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import Layout from './components/Layout'
-import { ROUTES } from './constants/routes'
-import AuthPage from './pages/AuthPage'
-import MainPage from './pages/MainPage'
+import MainPage from './pages/MainPage';
+import AuthPage from './pages/AuthPage';
+import ProjectPage from './pages/ProjectPage';
+import Board from './pages/Board/Board';
+import ProjectMembers from './pages/ProjectPage/ProjectMembers';
+import Layout from './components/Layout';
+import { ROUTES } from './constants/routes';
 
 const theme = createTheme({
   palette: {
@@ -21,6 +24,12 @@ function App() {
 
           <Route element={<Layout />}>
             <Route path={ROUTES.MAIN} element={<MainPage />} />
+        
+            <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
+              <Route index element={<Board />} />
+              <Route path="board" element={<Board />} />
+              <Route path="members" element={<ProjectMembers />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to={ROUTES.MAIN} replace />} />

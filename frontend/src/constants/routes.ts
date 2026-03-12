@@ -1,4 +1,8 @@
 export const ROUTES = {
   AUTH: '/auth',
   MAIN: '/',
-} as const
+  PROJECTS: '/projects',
+  PROJECT_DETAIL: (id: number | string) => `/projects/${id}`,
+  PROJECT_BOARD: (id: number | string) => `/projects/${id}/board`,
+  PROJECT_MEMBERS: (id: number | string) => `/projects/${id}/members`,
+} as const;
