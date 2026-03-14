@@ -10,6 +10,13 @@ interface RequestOptions {
   headers?: Record<string, string>
 }
 
+export interface ApiErrorResponse {
+  status: number
+  message: string
+  raw?: unknown
+  [key: string]: unknown
+}
+
 async function request(endpoint: string, options: RequestOptions = {}) {
   const { method = 'GET', body, headers: extraHeaders } = options
 
@@ -26,8 +33,28 @@ async function request(endpoint: string, options: RequestOptions = {}) {
   })
 
   if (!response.ok) {
-    const message = await response.text().catch(() => response.statusText)
-    throw new Error(message)
+    let errorBody: any = null;
+
+    try {
+      errorBody = await response.json();
+    } catch {
+      // сервер вернул не JSON → берём текст
+      const text = await response.text().catch(() => "");
+      errorBody = { message: text || response.statusText };
+    }
+
+    const apiError = {
+      status: response.status,
+      message:
+        errorBody.detail ||
+        errorBody.message ||
+        errorBody.error ||
+        response.statusText ||
+        "Что-то пошло не так...",
+      raw: errorBody,
+    } as ApiErrorResponse;
+
+    throw apiError as ApiErrorResponse;
   }
 
   if (response.status === 204) {

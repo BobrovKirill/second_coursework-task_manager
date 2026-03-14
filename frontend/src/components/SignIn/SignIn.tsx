@@ -5,7 +5,7 @@ import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, T
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes.ts'
-import useApi from '../../hooks/useApi.ts'
+import useApi, {type ApiErrorResponse} from '../../hooks/useApi.ts'
 import base from '../../styles/formBase.module.css'
 import { setToken } from '../../utils/cookie.ts'
 import { useAlertModal } from '../AlertModal'
@@ -41,9 +41,8 @@ function SignIn({ onNavigate }: SignInProps) {
       showAlertModal({ title: 'Успешно', message: 'авторизация прошла успешно!', type: 'success' })
       navigate(ROUTES.MAIN)
     }
-    catch (error) {
-      const err = error as SingErrorFetchTypes
-      const message = err.detail || 'Что-то пошло не так...'
+    catch (error: ApiErrorResponse | unknown) {
+      const message = error?.message || 'Что-то пошло не так...'
       showAlertModal({ title: 'Ошибка', message })
     }
 

@@ -2,7 +2,7 @@ import type { AuthView, SingErrorFetchTypes, SingFormTypes } from '../Sign'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
-import useApi from '../../hooks/useApi.ts'
+import useApi, {type ApiErrorResponse} from '../../hooks/useApi.ts'
 import base from '../../styles/formBase.module.css'
 import { useAlertModal } from '../AlertModal'
 import Sign, { validateSignUpForm } from '../Sign'
@@ -34,13 +34,11 @@ function SignUp({ onNavigate }: SignUpProps) {
     setLoading(true)
     try {
       await api.post('/users', form)
-      await new Promise(r => setTimeout(r, 1000))
       showAlertModal({ title: 'Поздравляем!', message: 'Регистрация прошла успешно!', type: 'success' })
       onNavigate('signIn')
     }
-    catch (error) {
-      const err = error as SingErrorFetchTypes
-      const message = err.detail || 'Что-то пошло не так...'
+    catch (error: ApiErrorResponse | unknown) {
+      const message = error?.message || 'Что-то пошло не так...'
       showAlertModal({ title: 'Ошибка', message })
     }
     finally {
