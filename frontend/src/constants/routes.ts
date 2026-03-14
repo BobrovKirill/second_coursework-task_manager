@@ -4,5 +4,7 @@ export const ROUTES = {
   PROJECTS: '/projects',
   PROJECT_DETAIL: (id: number | string) => `/projects/${id}`,
   PROJECT_BOARD: (id: number | string) => `/projects/${id}/board`,
-  PROJECT_MEMBERS: (id: number | string) => `/projects/${id}/members`,
+  PROJECT_MEMBERS: `/members`,
+  PROJECT_CREATE: '/projects',
+  ADD_MEMBER: '/members',
 } as const;

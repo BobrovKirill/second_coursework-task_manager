@@ -1,0 +1,10 @@
+.header {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    right: 24px;
+
+    width: auto;
+
+    color: #0f172a;
+}

@@ -13,17 +13,6 @@ import { useProject } from '../../hooks/useProject';
 import { ROUTES } from '../../constants/routes';
 import styles from './styles.module.css';
 
-// Временная шапка
-const TempHeader = () => (
-  <Paper className={styles.tempHeader}>
-    <Typography variant="h6">[Временная шапка]</Typography>
-    <Box>
-      <button className={styles.headerButton}>Профиль</button>
-      <button className={styles.headerButton}>Настройки</button>
-    </Box>
-  </Paper>
-);
-
 const ProjectPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -45,7 +34,6 @@ const ProjectPage = () => {
   if (loading) {
     return (
       <Container maxWidth="xl" className={styles.container}>
-        <TempHeader />
         <Box className={styles.loadingContainer}>
           <CircularProgress />
         </Box>
@@ -56,7 +44,6 @@ const ProjectPage = () => {
   if (error || !project) {
     return (
       <Container maxWidth="xl" className={styles.container}>
-        <TempHeader />
         <Alert severity="error" className={styles.errorAlert}>
           Проект не найден или у вас нет доступа к нему
         </Alert>
@@ -66,8 +53,6 @@ const ProjectPage = () => {
 
   return (
     <Container maxWidth="xl" className={styles.container}>
-      <TempHeader />
-
       <Paper className={styles.projectHeader}>
         <Typography variant="h4" className={styles.projectName}>
           {project.name}
