@@ -5,8 +5,9 @@ import AuthPage from './pages/AuthPage';
 import ProjectPage from './pages/ProjectPage';
 import Board from './pages/Board/Board';
 import ProjectMembers from './pages/ProjectPage/ProjectMembers';
-import Layout from './components/Layout';
-import { ROUTES } from './constants/routes';
+import Layout from './components/Layout'
+import { ROUTES } from './constants/routes'
+import styles from './styles/app.module.css'
 
 const theme = createTheme({
   palette: {
@@ -18,23 +19,25 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        <Routes>
-          <Route path={ROUTES.AUTH} element={<AuthPage />} />
+      <div className={styles.app}>
+        <BrowserRouter>
+          <Routes>
+            <Route path={ROUTES.AUTH} element={<AuthPage />} />
 
-          <Route element={<Layout />}>
-            <Route path={ROUTES.MAIN} element={<MainPage />} />
-        
-            <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
-              <Route index element={<Board />} />
-              <Route path="board" element={<Board />} />
-              <Route path="members" element={<ProjectMembers />} />
+            <Route element={<Layout />}>
+              <Route path={ROUTES.MAIN} element={<MainPage />} />
+              
+              <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
+                <Route index element={<Board />} />
+                <Route path="board" element={<Board />} />
+                <Route path="members" element={<ProjectMembers />} />
+              </Route>
             </Route>
-          </Route>
 
-          <Route path="*" element={<Navigate to={ROUTES.MAIN} replace />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="*" element={<Navigate to={ROUTES.MAIN} replace />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
     </ThemeProvider>
   )
 }
