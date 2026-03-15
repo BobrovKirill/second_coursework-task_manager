@@ -8,6 +8,7 @@ import ProjectMembers from './pages/ProjectPage/ProjectMembers';
 import Layout from './components/Layout'
 import { ROUTES } from './constants/routes'
 import styles from './styles/app.module.css'
+import ProfilePage from "./pages/ProfilePage";
 
 const theme = createTheme({
   palette: {
@@ -26,6 +27,8 @@ function App() {
 
             <Route element={<Layout />}>
               <Route path={ROUTES.MAIN} element={<MainPage />} />
+
+              <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
               
               <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
                 <Route index element={<Board />} />

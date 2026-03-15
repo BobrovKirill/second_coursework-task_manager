@@ -16,6 +16,7 @@ import Logo from '../../assets/react.svg?react'
 import { useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
 import HeaderNav from "../HeaderNav";
+import {ROUTES} from "../../constants/routes.ts";
 
 
 function Header() {
@@ -74,6 +75,7 @@ function Header() {
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               color="inherit"
+              onClick={() => navigate(ROUTES.PROFILE)}
               startIcon={<AccountCircle />}
               sx={{ textTransform: 'none', borderRadius: '16px' }}
             >

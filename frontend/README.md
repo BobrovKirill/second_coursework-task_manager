@@ -125,3 +125,19 @@ try {
 
   showAlertModal({ title: 'Ошибка', message })
 ```
+
+## CurrentUser
+Данные текущего юзера храняться в стейте фронта, вызов поинта и запись происходят на уровне layout'а и для удобства дальшей обработки данных - 'src/store/useUserStory.ts'
+В компоненте вызов
+```tsx
+const user = useUserStore()
+// или через дисктукторизацию, как удобнее
+const { user, loading, updateUser, uploadAvatar } = useUserStore()
+```
+- содержит в себе вызов поинта - fetchUser
+- обновление данных юзера - updateUser 
+- получение данных из стора - getUser
+- очкиста стора - clearUser
+- загрузка аватара - uploadAvatar (пока заглушка, в разработке)
+- так же состояние загрузки поинтов - loading
+- состояние ошибки - error

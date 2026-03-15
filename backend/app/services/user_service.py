@@ -67,6 +67,12 @@ class UserService:
                     detail="Username уже занят"
                 )
 
+        if user_data.email and user_data.email != user.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Изменение email недоступно"
+            )
+
         updated_user = await self.repository.update(user, user_data)
         return UserRead.model_validate(updated_user)
 

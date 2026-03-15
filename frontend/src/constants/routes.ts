@@ -7,4 +7,5 @@ export const ROUTES = {
   PROJECT_MEMBERS: `/members`,
   PROJECT_CREATE: '/projects',
   ADD_MEMBER: '/members',
+  PROFILE: '/users/me'
 } as const;

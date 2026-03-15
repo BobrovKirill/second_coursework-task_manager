@@ -3,6 +3,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List
 from app.core.database import Base
+from typing import Optional
 
 # Класс User соответсвует одной таблице в БД и содержит в себе:
 # String(255) — VARCHAR(255) в SQL (строка до 255 символов)
@@ -25,6 +26,13 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(default=datetime.utcnow, onupdate=datetime.utcnow)
+    first_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    patronymic: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    birth_date: Mapped[Optional[datetime]] = mapped_column(nullable=True)
+    position: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    employee_type: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    avatar: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
 
     # связи с проектом и участниками проекта
     owned_projects: Mapped[List["Project"]] = relationship(

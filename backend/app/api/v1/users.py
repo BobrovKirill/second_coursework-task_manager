@@ -51,14 +51,14 @@ async def get_users(
     return await service.get_users(skip=skip, limit=limit)
 
 
-@router.put("/{user_id}", response_model=UserRead)
+@router.patch("/me", response_model=UserRead)
 async def update_user(
-    user_id: int,
     user_data: UserUpdate,
+    current_user: User = Depends(get_current_user),
     service: UserService = Depends(get_user_service)
 ):
     """Обновление пользователя"""
-    return await service.update_user(user_id, user_data)
+    return await service.update_user(current_user.id, user_data)
 
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
