@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Optional
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, EmailStr, Field, ConfigDict, model_validator
 from datetime import datetime
 from humps import camelize
 from pydantic import field_validator
@@ -23,6 +23,13 @@ class UserBase(BaseModel):
 # Схема для создания, наследуюем общий класс
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=100)
+    confirm: str = Field(..., min_length=8, max_length=100)
+
+    @model_validator(mode='after')
+    def passwords_match(self):
+        if self.password != self.confirm:
+            raise ValueError('Пароли не совпадают')
+        return self
 
     model_config = ConfigDict(
         extra="forbid",
