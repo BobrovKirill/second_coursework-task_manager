@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { projectsApi } from '../services/project'
-import type {ProjectWithMembers, ProjectUpdate } from '../types/project'
+import useApi from '../hooks/useApi'
+import type { ProjectWithMembers, ProjectUpdate } from '../types/project'
 
 export const useProject = (projectId: number) => {
   const [project, setProject] = useState<ProjectWithMembers | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
+  
+  const api = useApi()
 
   const fetchProject = useCallback(async () => {
     setLoading(true)
     try {
-      const { data } = await projectsApi.getById(projectId)
+      const data: ProjectWithMembers = await api.get(`/projects/${projectId}`)
       setProject(data)
     } catch (err) {
       setError(err as Error)
@@ -19,16 +21,16 @@ export const useProject = (projectId: number) => {
     }
   }, [projectId])
 
-  const updateProject = async (data: ProjectUpdate) => {
+  const updateProject = useCallback(async (data: ProjectUpdate) => {
     try {
-      const { data: updated } = await projectsApi.update(projectId, data)
+      const updated: ProjectWithMembers = await api.put(`/projects/${projectId}`, data)
       setProject(prev => prev ? { ...prev, ...updated } : null)
       return updated
     } catch (err) {
       setError(err as Error)
       throw err
     }
-  }
+  }, [projectId])
 
   useEffect(() => {
     fetchProject()

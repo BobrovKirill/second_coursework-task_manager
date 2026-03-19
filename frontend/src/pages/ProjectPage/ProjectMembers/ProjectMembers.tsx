@@ -22,9 +22,8 @@ import {
 import { PersonAdd, Person } from '@mui/icons-material';
 import { useOutletContext } from 'react-router-dom';
 import { useProjectMembers } from '../../../hooks/useProjectMembers';
-import { projectsApi } from "../../../services/project"
+import { useUserStore } from '../../../store/useUserStory';
 import type { Project } from '../../../types/project';
-import type {User} from "../../../types/user"
 import { useEffect } from 'react';
 import styles from './styles.module.css';
 
@@ -33,9 +32,7 @@ const ProjectMembers = () => {
   const { project } = useOutletContext<{ project: Project }>();
   const projectId = Number(id);
 
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  const [userError, setUserError] = useState('');
+  const { user: currentUser, loading: loadingUser, fetchUser } = useUserStore();
   
   const { members, loading, addMember, removeMember } = useProjectMembers(projectId);
   
@@ -51,32 +48,15 @@ const ProjectMembers = () => {
   const [isInviting, setIsInviting] = useState(false);
 
   useEffect(() => {
-  const fetchCurrentUser = async () => {
-    try {
-      setLoadingUser(true); 
-      const user = await projectsApi.getCurrentUser();  
-      setCurrentUser(user.data); 
-      setUserError('');
-    } catch (error) {
-      console.error('Failed to fetch current user:', error);
-      setUserError('Не удалось загрузить информацию о пользователе');
-    } finally {
-      setLoadingUser(false);
+    if (!currentUser) {
+      fetchUser();
     }
-  };
-
-    fetchCurrentUser();
-  }, []);
+  }, [currentUser, fetchUser]);
 
   const isOwner = project?.owner_id === currentUser?.id;
 
   if (loadingUser) {
-  return <div>Загрузка информации о пользователе...</div>;
-  }
-
-
-  if (userError) {
-  return <div className="error-message">{userError}</div>;
+    return <div>Загрузка информации о пользователе...</div>;
   }
 
   const handleContextMenu = (event: React.MouseEvent, memberId: number) => {
@@ -118,8 +98,7 @@ const ProjectMembers = () => {
       setUserId('');
     } catch (error: any) {
       setInviteError(
-        error.response?.data?.detail || 
-        'Не удалось добавить участника.'
+        error?.message || 'Не удалось добавить участника.'
       );
     } finally {
       setIsInviting(false);

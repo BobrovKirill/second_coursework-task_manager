@@ -1,16 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
-import { projectsApi } from '../services/project'
+import useApi from '../hooks/useApi'
 import type { UserListItem } from '../types/user'
 
 export const useProjectMembers = (projectId: number) => {
   const [members, setMembers] = useState<UserListItem[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+  
+  const api = useApi()
 
   const fetchMembers = useCallback(async () => {
     setLoading(true)
     try {
-      const { data } = await projectsApi.getMembers(projectId)
+      const data: UserListItem[] = await api.get(`/projects/${projectId}/members`)
       setMembers(data)
     } catch (err) {
       setError(err as Error)
@@ -19,24 +21,24 @@ export const useProjectMembers = (projectId: number) => {
     }
   }, [projectId])
 
-  const addMember = async (userId: number) => {
+  const addMember = useCallback(async (userId: number) => {
     try {
-      const { data: newMember } = await projectsApi.addMember(projectId, userId)
+      const newMember: UserListItem = await api.post(`/projects/${projectId}/members/${userId}`)
       setMembers(prev => [...prev, newMember])
       return newMember
     } catch (err) {
       throw err
     }
-  }
+  }, [projectId])
 
-  const removeMember = async (userId: number) => {
+  const removeMember = useCallback(async (userId: number) => {
     try {
-      await projectsApi.removeMember(projectId, userId)
+      await api.delete(`/projects/${projectId}/members/${userId}`)
       setMembers(prev => prev.filter(m => m.id !== userId))
     } catch (err) {
       throw err
     }
-  }
+  }, [projectId])
 
   useEffect(() => {
     fetchMembers()
