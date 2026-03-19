@@ -12,6 +12,7 @@ import {
   Typography
 } from "@mui/material";
 import {ExpandLess, ExpandMore} from "@mui/icons-material";
+import FolderIcon from '@mui/icons-material/Folder'
 import PersonIcon from '@mui/icons-material/Person'
 import AddIcon from '@mui/icons-material/Add'
 import {useLocation} from "react-router-dom";
@@ -122,31 +123,47 @@ function CollapsibleSection({ item, onNavigate }: CollapsibleSectionProps) {
               </Typography>
             </Box>
           ) : (
-            items.map(listItem => (
-              <ListItemButton
-                key={listItem.id}
-                sx={{ 
-                  borderRadius: '12px', 
-                  mx: 1, 
-                  mb: 0.5, 
-                  pl: 4 
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 36 }}>
-                  <PersonIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText 
-                  primary={listItem.username}
-                  secondary={listItem.email}
-                  primaryTypographyProps={{
-                    variant: 'body2',
-                  }}
-                  secondaryTypographyProps={{
-                    variant: 'caption',
-                  }}
-                />
-              </ListItemButton>
-            ))
+            items.map(listItem => {
+              if (item.isMembers) {
+                return (
+                  <ListItemButton
+                    key={listItem.id}
+                    sx={{ 
+                      borderRadius: '12px', 
+                      mx: 1, 
+                      mb: 0.5, 
+                      pl: 4 
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <PersonIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={listItem.username}
+                      secondary={listItem.email}
+                    />
+                  </ListItemButton>
+                )
+              } else {
+                return (
+                  <ListItemButton
+                    key={listItem.id}
+                    onClick={() => onNavigate(`${item.slug}/${listItem.id}`)}
+                    sx={{ 
+                      borderRadius: '12px', 
+                      mx: 1, 
+                      mb: 0.5, 
+                      pl: 4 
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 36 }}>
+                      <FolderIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText primary={listItem.name} />
+                  </ListItemButton>
+                )
+              }
+            })
           )}
 
           {item.button && (
