@@ -1,8 +1,11 @@
 import type {NavItem} from "../HeaderNav";
+import type {UserListItem} from "../../types/user";
 
 export interface ListItem {
   id: number | string
-  name: string
+  name?: string
+  username?: string
+  email?: string
 }
 
 export interface CollapsibleSectionProps {

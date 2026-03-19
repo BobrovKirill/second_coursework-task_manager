@@ -1,35 +1,20 @@
-import { Outlet, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useParams} from 'react-router-dom';
 import {
   Container,
   Typography,
   Box,
   Paper,
-  Tabs,
-  Tab,
   CircularProgress,
   Alert,
 } from '@mui/material';
 import { useProject } from '../../hooks/useProject';
-import { ROUTES } from '../../constants/routes';
 import styles from './styles.module.css';
 
 const ProjectPage = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const location = useLocation();
   const projectId = Number(id);
   
   const { project, loading, error } = useProject(projectId);
-
-  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
-    if (newValue === 'board') {
-      navigate(ROUTES.PROJECT_BOARD(projectId));
-    } else {
-      navigate(ROUTES.PROJECT_MEMBERS(projectId));
-    }
-  };
-
-  const currentTab = location.pathname.includes('/members') ? 'members' : 'board';
 
   if (loading) {
     return (
@@ -63,14 +48,6 @@ const ProjectPage = () => {
           </Typography>
         )}
       </Paper>
-
-      <Box className={styles.tabsContainer}>
-        <Tabs value={currentTab} onChange={handleTabChange}>
-          <Tab value="board" label="Доска" />
-          <Tab value="members" label="Участники" />
-        </Tabs>
-      </Box>
-
       <Outlet context={{ project }} />
     </Container>
   );

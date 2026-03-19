@@ -4,7 +4,6 @@ import MainPage from './pages/MainPage';
 import AuthPage from './pages/AuthPage';
 import ProjectPage from './pages/ProjectPage';
 import Board from './pages/Board/Board';
-import ProjectMembers from './pages/ProjectPage/ProjectMembers';
 import Layout from './components/Layout'
 import { ROUTES } from './constants/routes'
 import styles from './styles/app.module.css'
@@ -33,7 +32,6 @@ function App() {
               <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
                 <Route index element={<Board />} />
                 <Route path="board" element={<Board />} />
-                <Route path="members" element={<ProjectMembers />} />
               </Route>
             </Route>
 

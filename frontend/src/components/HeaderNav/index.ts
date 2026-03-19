@@ -15,6 +15,7 @@ export interface NavItem {
     label: string
     path: string
   }
+  isMembers?: boolean
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -36,10 +37,11 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Участники',
     slug: '/members',
     button: {
-      label: 'Добавить проект',
+      label: 'Добавить участника',
       path: ROUTES.ADD_MEMBER,
     },
     icon: GroupIcon,
+    isMembers: true,
   },
 ]
 
