@@ -15,12 +15,15 @@ import CloseIcon from '@mui/icons-material/Close'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {DRAWER_WIDTH, NAV_ITEMS, type NavDrawerProps} from "./index.ts";
 import CollapsibleSection from "../HeaderNavCollaps/HeaderNavCollaps.tsx";
+import { useState } from 'react'
+import CreateProjectModal from '../CreateProjectModal'
 
 
 
 function HeaderNav({ open, onClose }: NavDrawerProps) {
   const navigate = useNavigate()
   const location = useLocation()
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   function handleNavClick(path: string) {
     navigate(path)
@@ -28,6 +31,7 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
   }
 
   return (
+    <>
     <Drawer
       variant="temporary"
       open={open}
@@ -66,31 +70,70 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
 
         <List sx={{ flex: 1, pt: 1 }}>
           {NAV_ITEMS.map(item => (
-            'path' in item
-              ? (
-                <ListItemButton
-                  key={item.path}
-                  selected={location.pathname === item.path}
-                  onClick={() => handleNavClick(item.path)}
-                  sx={{ borderRadius: '12px', mx: 1, mb: 0.5 }}
-                >
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <item.icon />
-                  </ListItemIcon>
-                  <ListItemText primary={item.label} />
-                </ListItemButton>
-              )
-              : (
-                <CollapsibleSection
-                  key={item.slug}
-                  item={item}
-                  onNavigate={handleNavClick}
+            'path' in item ? (
+              <ListItemButton
+                key={item.path}
+                selected={location.pathname === item.path}
+                onClick={() => handleNavClick(item.path)}
+                sx={{ borderRadius: '12px', mx: 1, mb: 0.5 }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <item.icon />
+                </ListItemIcon>
+                <ListItemText primary={item.label} />
+              </ListItemButton>
+            ) : item.isBoard ? (
+              // Особая обработка для доски
+              <ListItemButton
+                key="board"
+                selected={location.pathname.includes('/board')}
+                onClick={() => {
+                  // Проверяем открыт ли какой то проект
+                  const match = location.pathname.match(/\/projects\/(\d+)/)
+                  if (match) {
+                    navigate(`/projects/${match[1]}/board`)
+                    onClose()
+                  }
+                }}
+                sx={{ 
+                  borderRadius: '12px', 
+                  mx: 1, 
+                  mb: 0.5,
+                  opacity: !location.pathname.includes('/projects/') ? 0.5 : 1,
+                }}
+                disabled={!location.pathname.includes('/projects/')}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <item.icon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    color: !location.pathname.includes('/projects/') ? 'text.disabled' : 'text.primary'
+                  }}
                 />
-              )
+              </ListItemButton>
+            ) : (
+              <CollapsibleSection
+                key={item.slug}
+                item={item}
+                onNavigate={handleNavClick}
+                onCreateProject={() => setIsCreateModalOpen(true)}
+              />
+            )
           ))}
         </List>
       </Box>
     </Drawer>
+
+    <CreateProjectModal
+      open={isCreateModalOpen}
+      onClose={() => setIsCreateModalOpen(false)}
+      onSuccess={() => {
+        //чета добавить можно
+      }}
+    />
+  </>
   )
 }
 

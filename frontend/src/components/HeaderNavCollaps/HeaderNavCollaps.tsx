@@ -18,7 +18,7 @@ import AddIcon from '@mui/icons-material/Add'
 import {useLocation} from "react-router-dom";
 
 
-function CollapsibleSection({ item, onNavigate }: CollapsibleSectionProps) {
+function CollapsibleSection({ item, onNavigate, onCreateProject}: CollapsibleSectionProps) {
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
@@ -168,7 +168,13 @@ function CollapsibleSection({ item, onNavigate }: CollapsibleSectionProps) {
 
           {item.button && (
             <ListItemButton
-              onClick={() => onNavigate(item.button.path)}
+              onClick={() => {
+                if (item.slug === '/projects') {
+                  onCreateProject?.() //модалка для проекта
+                } else {
+                  onNavigate(item.button.path)
+                }
+              }}
               disabled={item.isMembers && !isProjectPage}
               sx={{ 
                 borderRadius: '12px', 

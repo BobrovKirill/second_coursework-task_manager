@@ -2,6 +2,7 @@ import {ROUTES} from "../../constants/routes.ts";
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import FolderIcon from '@mui/icons-material/Folder'
 import GroupIcon from '@mui/icons-material/Group';
+import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
 import type {SvgIconComponent} from "@mui/icons-material";
 
 export const DRAWER_WIDTH = 280
@@ -16,6 +17,7 @@ export interface NavItem {
     path: string
   }
   isMembers?: boolean
+  isBoard?: boolean
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -32,6 +34,11 @@ export const NAV_ITEMS: NavItem[] = [
       path: ROUTES.PROJECT_CREATE,
     },
     icon: FolderIcon,
+  },
+  {
+    label: 'Доска',
+    icon: ViewKanbanIcon,
+    isBoard: true,
   },
   {
     label: 'Участники',
