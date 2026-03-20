@@ -35,6 +35,7 @@ export interface UserProject {
 
 export interface UserState {
   user: User | null
+  lastProjectId: number | null
   loading: boolean
   error: string | null
 
@@ -44,4 +45,6 @@ export interface UserState {
   getUser: () => User | null
   clearUser: () => void
   uploadAvatar: () => void
+  setLastProjectId: (projectId: number | null) => void
+  getLastProjectId: () => number | null
 }

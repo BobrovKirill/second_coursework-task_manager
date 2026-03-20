@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import useApi from '../hooks/useApi'
 import type {User, UserState} from "../types/user.ts";
+import {getStoredLastProjectId, saveLastProjectId} from "../utils/projectId.ts"
+
 
 export const EMPLOYEE_TYPES = ['frontend', 'backend', 'design', 'qa', 'devops', 'manager'] as const
 
@@ -11,6 +13,7 @@ export const useUserStore = create<UserState>((set, get) => {
     user: null,
     loading: false,
     error: null,
+    lastProjectId: getStoredLastProjectId(),
 
     fetchUser: async () => {
       set({ loading: true, error: null })
@@ -49,6 +52,16 @@ export const useUserStore = create<UserState>((set, get) => {
 
     clearUser: () => set({ user: null }),
 
-    uploadAvatar: () => {}
+    uploadAvatar: () => {},
+
+    setLastProjectId: (projectId: number | null) => {
+      saveLastProjectId(projectId)
+      set({ lastProjectId: projectId })
+    },
+
+    getLastProjectId: (): number | null => {
+      const state = get()
+      return state.lastProjectId
+    }
   }
 })

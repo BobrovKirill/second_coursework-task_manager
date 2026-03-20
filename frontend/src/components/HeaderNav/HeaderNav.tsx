@@ -4,7 +4,6 @@ import {
   Drawer,
   IconButton,
   List,
-  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -16,7 +15,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import {DRAWER_WIDTH, NAV_ITEMS, type NavDrawerProps} from "./index.ts";
 import CollapsibleSection from "../HeaderNavCollaps/HeaderNavCollaps.tsx";
 import { useState } from 'react'
-import CreateProjectModal from '../CreateProjectModal'
+import CreateProjectModal from '../CreateProjectModal/index.ts'
+import { useUserStore } from '../../store/useUserStory.ts';
 
 
 
@@ -24,6 +24,8 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
   const navigate = useNavigate()
   const location = useLocation()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const { getLastProjectId } = useUserStore()
+  const lastProjectId = getLastProjectId()
 
   function handleNavClick(path: string) {
     navigate(path)
@@ -88,10 +90,9 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
                 key="board"
                 selected={location.pathname.includes('/board')}
                 onClick={() => {
-                  // Проверяем открыт ли какой то проект
-                  const match = location.pathname.match(/\/projects\/(\d+)/)
-                  if (match) {
-                    navigate(`/projects/${match[1]}/board`)
+                  const lastId = getLastProjectId()
+                  if (lastId) {
+                    navigate(`/projects/${lastId}/board`)
                     onClose()
                   }
                 }}
@@ -99,9 +100,9 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
                   borderRadius: '12px', 
                   mx: 1, 
                   mb: 0.5,
-                  opacity: !location.pathname.includes('/projects/') ? 0.5 : 1,
+                  opacity: !lastProjectId ? 0.5 : 1,
                 }}
-                disabled={!location.pathname.includes('/projects/')}
+                disabled={!lastProjectId}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>
                   <item.icon />
@@ -109,7 +110,7 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
                 <ListItemText 
                   primary={item.label}
                   primaryTypographyProps={{
-                    color: !location.pathname.includes('/projects/') ? 'text.disabled' : 'text.primary'
+                    color: !lastProjectId ? 'text.disabled' : 'text.primary'
                   }}
                 />
               </ListItemButton>

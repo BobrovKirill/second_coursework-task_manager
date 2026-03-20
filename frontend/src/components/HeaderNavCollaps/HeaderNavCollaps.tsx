@@ -16,7 +16,7 @@ import FolderIcon from '@mui/icons-material/Folder'
 import PersonIcon from '@mui/icons-material/Person'
 import AddIcon from '@mui/icons-material/Add'
 import {useLocation} from "react-router-dom";
-
+import { useUserStore } from "../../store/useUserStory";
 
 function CollapsibleSection({ item, onNavigate, onCreateProject}: CollapsibleSectionProps) {
   const [open, setOpen] = useState(false)
@@ -25,12 +25,11 @@ function CollapsibleSection({ item, onNavigate, onCreateProject}: CollapsibleSec
   const [error, setError] = useState<string | null>(null)
   const api = useApi()
   const location = useLocation()
+  const { getLastProjectId } = useUserStore()
 
   const isProjectPage = location.pathname.match(/\/projects\/\d+(\/|$)/)
   
-  const projectId = item.isMembers && isProjectPage 
-    ? location.pathname.split('/')[2]
-    : null
+  const projectId = getLastProjectId()
 
   useEffect(() => {
     if (item.isMembers) {

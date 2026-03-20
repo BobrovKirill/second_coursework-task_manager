@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import useApi from '../hooks/useApi'
 import type { ProjectWithMembers, ProjectUpdate } from '../types/project'
+import { useUserStore } from '../store/useUserStory'
 
 export const useProject = (projectId: number) => {
   const [project, setProject] = useState<ProjectWithMembers | null>(null)
@@ -8,6 +9,13 @@ export const useProject = (projectId: number) => {
   const [error, setError] = useState<Error | null>(null)
   
   const api = useApi()
+  const { setLastProjectId } = useUserStore()
+
+  useEffect(() => {
+    if (projectId) {
+      setLastProjectId(projectId)
+    }
+  }, [projectId, setLastProjectId])
 
   const fetchProject = useCallback(async () => {
     setLoading(true)

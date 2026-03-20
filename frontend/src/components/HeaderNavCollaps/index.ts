@@ -11,4 +11,5 @@ export interface ListItem {
 export interface CollapsibleSectionProps {
   item: Extract<NavItem, { slug: string }>
   onNavigate: (path: string) => void
+  onCreateProject?: () => void
 }
