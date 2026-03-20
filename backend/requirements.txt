@@ -4,7 +4,7 @@ alembic
 sqlalchemy
 pydantic-settings~=2.11.0
 pydantic~=2.12.5
-passlib~=1.7.4
+bcrypt==4.0.1
 asyncpg
 greenlet
 pydantic[email]
