@@ -1,20 +1,25 @@
-import { Outlet, useParams} from 'react-router-dom';
 import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
   Container,
   Typography,
-  Box,
-  Paper,
-  CircularProgress,
-  Alert,
-} from '@mui/material';
-import { useProject } from '../../hooks/useProject';
-import styles from './styles.module.css';
+} from '@mui/material'
+import { Outlet, useNavigate, useParams } from 'react-router-dom'
+import { useProject } from '../../hooks/useProject'
+import styles from './styles.module.css'
 
-const ProjectPage = () => {
-  const { id } = useParams<{ id: string }>();
-  const projectId = Number(id);
-  
-  const { project, loading, error } = useProject(projectId);
+function ProjectPage() {
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const projectId = Number(id)
+
+  const { project, loading, error } = useProject(projectId)
+
+  const handleGoToCreateTask = () => {
+    navigate(`/projects/${projectId}/tasks/create`)
+  }
 
   if (loading) {
     return (
@@ -23,7 +28,7 @@ const ProjectPage = () => {
           <CircularProgress />
         </Box>
       </Container>
-    );
+    )
   }
 
   if (error || !project) {
@@ -33,24 +38,31 @@ const ProjectPage = () => {
           Проект не найден или у вас нет доступа к нему
         </Alert>
       </Container>
-    );
+    )
   }
 
   return (
     <Container maxWidth="xl" className={styles.container}>
-      <Paper className={styles.projectHeader}>
-        <Typography variant="h4" className={styles.projectName}>
-          {project.name}
-        </Typography>
-        {project.description && (
-          <Typography variant="body1" color="text.secondary">
-            {project.description}
+      <div className={styles.projectHeader}>
+        <div>
+          <Typography variant="h4" className={styles.projectName}>
+            { project.name }
           </Typography>
-        )}
-      </Paper>
+          { project.description && (
+            <Typography variant="body1" color="text.secondary">
+              {project.description}
+            </Typography>
+          )}
+        </div>
+
+        <Button variant="contained" sx={{ alignSelf: 'end' }} onClick={handleGoToCreateTask}>
+          Создать задачу
+        </Button>
+      </div>
+
       <Outlet context={{ project }} />
     </Container>
-  );
-};
+  )
+}
 
-export default ProjectPage;
+export default ProjectPage

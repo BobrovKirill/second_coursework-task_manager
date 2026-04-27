@@ -3,11 +3,12 @@ export const ROUTES = {
   MAIN: '/',
   PROJECTS: '/projects',
   PROJECT_DETAIL: (id: number | string) => `/projects/${id}`,
-  PROJECT_BOARD: (id: number | string) => `/projects/${id}/board`,
+  PROJECT_BOARD: (id: number | string) => `/projects/${id}`,
   PROJECT_MEMBERS: (id: number | string) => `/projects/${id}/members`,
   PROJECT_CREATE: '/projects',
   ADD_MEMBER: '/members',
   PROFILE: '/users/me',
   CREATE_TASK_PATTERN: '/projects/:projectId/tasks/create',
   CREATE_TASK: (projectId: number | string) => `/projects/${projectId}/tasks/create`,
+  EDIT_TASK: (projectId: number | string, taskId: number | string) => `/projects/${projectId}/tasks/${taskId}`,
 } as const

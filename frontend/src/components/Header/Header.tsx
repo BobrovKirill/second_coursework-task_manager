@@ -1,30 +1,28 @@
+import AccountCircle from '@mui/icons-material/AccountCircle'
+import MenuIcon from '@mui/icons-material/Menu'
+import Settings from '@mui/icons-material/Settings'
 import {
   AppBar,
-  Toolbar,
-  IconButton,
-  Typography,
-  Button,
   Box,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import AccountCircle from '@mui/icons-material/AccountCircle';
-import Settings from '@mui/icons-material/Settings';
-import styles from './style.module.css'
-import liquidGlass from '../../styles/liquidGlass.module.css'
-import { useState } from 'react';
+  Button,
+  IconButton,
+  Toolbar,
+  Typography,
+} from '@mui/material'
+import { useState } from 'react'
+import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import Logo from '../../assets/react.svg?react'
-import { useNavigate } from 'react-router-dom';
-import { Link as RouterLink } from 'react-router-dom';
-import HeaderNav from "../HeaderNav";
-import {ROUTES} from "../../constants/routes.ts";
-
+import { ROUTES } from '../../constants/routes.ts'
+import liquidGlass from '../../styles/liquidGlass.module.css'
+import HeaderNav from '../HeaderNav'
+import styles from './style.module.css'
 
 function Header() {
-  const navigate = useNavigate();
-  const [isShowNav, setShowNav] = useState(false);
+  const navigate = useNavigate()
+  const [isShowNav, setShowNav] = useState(false)
 
   const handleDrawerToggle = () => {
-    setShowNav(!isShowNav);
+    setShowNav(!isShowNav)
   }
 
   return (
@@ -32,7 +30,7 @@ function Header() {
       <AppBar
         position="fixed"
         elevation={0}
-        className={`${liquidGlass.wrapper} ${styles.header}`}
+        className={`${styles.header} ${liquidGlass.wrapper}`}
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
           <IconButton
@@ -48,7 +46,7 @@ function Header() {
           <Typography
             variant="h6"
             component="div"
-            onClick={() => navigate('/')}
+            onClick={async () => navigate('/')}
             sx={{
               flexGrow: 1,
               display: { xs: 'none', sm: 'block' },
@@ -75,7 +73,7 @@ function Header() {
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Button
               color="inherit"
-              onClick={() => navigate(ROUTES.PROFILE)}
+              onClick={async () => navigate(ROUTES.PROFILE)}
               startIcon={<AccountCircle />}
               sx={{ textTransform: 'none', borderRadius: '16px' }}
             >

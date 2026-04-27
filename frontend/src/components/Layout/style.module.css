@@ -1,5 +1,10 @@
 .layout {
     position: relative;
 
-    padding-top: 84px;
+    display: flex;
+    flex-direction: column;
+
+    padding-top: 92px;
+
+    min-height: 100vh;
 }

@@ -1,5 +1,8 @@
 .container {
-  padding: 24px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  flex: 1;
+  padding-top: 12px;
 }
 
 .tempHeader {
@@ -35,7 +38,10 @@
 }
 
 .projectHeader {
-  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+
+  padding: 0 16px;
   margin-bottom: 24px;
 }
 

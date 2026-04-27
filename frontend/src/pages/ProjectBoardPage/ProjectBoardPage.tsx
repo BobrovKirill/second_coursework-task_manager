@@ -1,75 +1,72 @@
-import { useMemo, useState, useCallback, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Box, Button, Container, Paper, Stack, Typography } from "@mui/material";
-import BoardColumn from "../../components/BoardColumn";
-import TaskForm, { type TaskFormValues } from "../../components/TaskForm";
-import { mockColumns, mockMembers, type Task } from "../../mocks/boardMock";
-import { useTasksStore } from "../../store/tasks";
+import type { FormEvent } from 'react'
+import type { TaskFormValues } from '../../components/TaskForm'
+import type { Task } from '../../mocks/boardMock'
+import { Box } from '@mui/material'
+import { useCallback, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import BoardColumn from '../../components/BoardColumn'
+import { mockColumns, mockMembers } from '../../mocks/boardMock'
+import { useTasksStore } from '../../store/tasks'
 
-const ProjectBoardPage = () => {
-  const { id, projectId } = useParams();
-  const navigate = useNavigate();
-  const currentProjectId = Number(projectId ?? id ?? 1);
+function ProjectBoardPage() {
+  const { id, projectId } = useParams()
+  const currentProjectId = Number(projectId ?? id ?? 1)
 
-  const handleGoToCreateTask = () => {
-    navigate(`/projects/${currentProjectId}/tasks/create`);
-  };
+  const tasks = useTasksStore(state => state.tasks)
+  const updateTask = useTasksStore(state => state.updateTask)
+  const deleteTask = useTasksStore(state => state.deleteTask)
+  const moveTask = useTasksStore(state => state.moveTask)
 
-  const tasks = useTasksStore((state) => state.tasks);
-  const updateTask = useTasksStore((state) => state.updateTask);
-  const deleteTask = useTasksStore((state) => state.deleteTask);
-  const moveTask = useTasksStore((state) => state.moveTask);
-
-  const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+  const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
 
   const [form, setForm] = useState<TaskFormValues>({
-    title: "",
-    description: "",
+    title: '',
+    description: '',
     columnId: String(mockColumns[0]?.id ?? 101),
     type: 'frontend',
-    priorityId: "3",
-    deadline: "",
-    assigneeId: "",
-  });
+    priorityId: '3',
+    deadline: '',
+    assigneeId: '',
+  })
 
   const sortedColumns = useMemo(
-    () => [...mockColumns].sort((a, b) => a.position - b.position),
-    []
-  );
+    () => mockColumns.toSorted((a, b) => a.position - b.position),
+    [],
+  )
 
   const resetForm = useCallback(() => {
     setForm({
-      title: "",
-      description: "",
+      title: '',
+      description: '',
       columnId: String(sortedColumns[0]?.id ?? 101),
       type: 'frontend',
-      priorityId: "3",
-      deadline: "",
-      assigneeId: "",
-    });
+      priorityId: '3',
+      deadline: '',
+      assigneeId: '',
+    })
 
-    setEditingTaskId(null);
-  }, [sortedColumns]);
+    setEditingTaskId(null)
+  }, [sortedColumns])
 
   const handleFormChange = useCallback(
     (field: keyof TaskFormValues, value: string) => {
-      setForm((prev) => ({
+      setForm(prev => ({
         ...prev,
         [field]: value,
-      }));
+      }))
     },
-    []
-  );
+    [],
+  )
 
   const handleChangeTaskColumn = useCallback(
     (taskId: number, newColumnId: number) => {
-      moveTask(taskId, newColumnId);
+      moveTask(taskId, newColumnId)
     },
-    [moveTask]
-  );
+    [moveTask],
+  )
 
   const handleStartEdit = useCallback((task: Task) => {
-    setEditingTaskId(task.id);
+    setEditingTaskId(task.id)
 
     setForm({
       title: task.title,
@@ -77,107 +74,79 @@ const ProjectBoardPage = () => {
       columnId: String(task.columnId),
       type: task.type,
       priorityId: String(task.priorityId),
-      deadline: task.deadline ?? "",
-      assigneeId: task.assigneeIds[0] ? String(task.assigneeIds[0]) : "",
-    });
-  }, []);
+      deadline: task.deadline ?? '',
+      assigneeId: task.assigneeIds[0] ? String(task.assigneeIds[0]) : '',
+    })
+  }, [])
 
   const handleDeleteTask = useCallback((taskId: number) => {
-    deleteTask(taskId);
+    deleteTask(taskId)
 
     if (editingTaskId === taskId) {
-      resetForm();
+      resetForm()
     }
-  }, [deleteTask, editingTaskId, resetForm]);
+  }, [deleteTask, editingTaskId, resetForm])
 
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-      event.preventDefault();
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
-      if (editingTaskId === null) {
-        return;
-      }
+    if (editingTaskId === null) {
+      return
+    }
 
-      const title = form.title.trim();
-      if (!title) return;
+    const title = form.title.trim()
+    if (!title)
+      return
 
-      updateTask(editingTaskId, {
-        columnId: Number(form.columnId),
-        type: form.type as Task['type'],
-        title,
-        description: form.description.trim(),
-        priorityId: Number(form.priorityId),
-        deadline: form.deadline || null,
-        assigneeIds: form.assigneeId ? [Number(form.assigneeId)] : [],
-      });
+    updateTask(editingTaskId, {
+      columnId: Number(form.columnId),
+      type: form.type as Task['type'],
+      title,
+      description: form.description.trim(),
+      priorityId: Number(form.priorityId),
+      deadline: form.deadline || null,
+      assigneeIds: form.assigneeId ? [Number(form.assigneeId)] : [],
+    })
 
-      resetForm();
-    };  
+    resetForm()
+  }
 
   return (
-    <Container maxWidth={false} sx={{ py: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Доска проекта
-      </Typography>
-
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        MVP-версия
-      </Typography>
-
-      {editingTaskId !== null ? (
-        <Box sx={{ mb: 3 }}>
-          <TaskForm
-            title="Редактировать задачу"
-            values={form}
-            columns={sortedColumns}
-            members={mockMembers}
-            onChange={handleFormChange}
-            onSubmit={handleSubmit}
-            submitLabel="Сохранить изменения"
-            onCancel={resetForm}
-            cancelLabel="Отмена"
-          />
-        </Box>
-      ) : (
-        <Paper
-          sx={{ p: 2, mb: 2, borderRadius: 2, border: "1px solid #e0e0e0" }}
-          elevation={0}
-        >
-          <Stack
-            direction={{ xs: "column", sm: "row" }}
-            spacing={2}
-            alignItems={{ xs: "flex-start", sm: "center" }}
-            justifyContent="space-between"
-          >
-            <Box>
-              <Typography variant="h6">
-                Задачи проекта
-              </Typography>
-
-            </Box>
-
-            <Button variant="contained" onClick={handleGoToCreateTask}>
-              Создать задачу
-            </Button>
-          </Stack>
-        </Paper>
-      )}
+    <div>
+      {/* <Box sx={{ mb: 3 }}> */}
+      {/*  <TaskForm */}
+      {/*    title="Редактировать задачу" */}
+      {/*    values={form} */}
+      {/*    columns={sortedColumns} */}
+      {/*    members={mockMembers} */}
+      {/*    onChange={handleFormChange} */}
+      {/*    onSubmit={handleSubmit} */}
+      {/*    submitLabel="Сохранить изменения" */}
+      {/*    onCancel={resetForm} */}
+      {/*    cancelLabel="Отмена" */}
+      {/*  /> */}
+      {/* </Box> */}
 
       <Box
         sx={{
-          display: "grid",
-          gridTemplateColumns: {
-            xs: "1fr",
-            sm: "repeat(2, minmax(0, 1fr))",
-            lg: "repeat(4, minmax(0, 1fr))",
-          },
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, minmax(250px, 1fr))',
           gap: 1.5,
-          alignItems: "stretch",
+          alignItems: 'stretch',
+          height: '100%',
+
+          overflowX: 'auto',
+          overflowY: 'hidden',
+
+          minWidth: '100%',
+
+          paddingBottom: '12px',
         }}
       >
         {sortedColumns.map((column) => {
           const columnTasks = tasks.filter(
-            (task) => task.projectId === currentProjectId && task.columnId === column.id
-          );
+            task => task.projectId === currentProjectId && task.columnId === column.id,
+          )
 
           return (
             <BoardColumn
@@ -190,11 +159,11 @@ const ProjectBoardPage = () => {
               onEditTask={handleStartEdit}
               onDeleteTask={handleDeleteTask}
             />
-          );
+          )
         })}
       </Box>
-    </Container>
-  );
-};
+    </div>
+  )
+}
 
-export default ProjectBoardPage;
+export default ProjectBoardPage

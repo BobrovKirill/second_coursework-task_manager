@@ -8,9 +8,9 @@ import TaskForm from '../../components/TaskForm'
 import { mockColumns, mockMembers } from '../../mocks/boardMock'
 import { useTasksStore } from '../../store/tasks'
 
-function CreateTaskPage() {
+function EditTaskPage() {
   const navigate = useNavigate()
-  const { projectId } = useParams()
+  const { projectId, taksId } = useParams()
 
   const currentProjectId = Number(projectId ?? '1')
   const addTask = useTasksStore(state => state.addTask)
@@ -89,4 +89,4 @@ function CreateTaskPage() {
   )
 }
 
-export default CreateTaskPage
+export default EditTaskPage
