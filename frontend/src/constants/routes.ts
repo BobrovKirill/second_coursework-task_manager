@@ -12,4 +12,5 @@ export const ROUTES = {
   CREATE_TASK_PATTERN: '/projects/:projectId/tasks/create',
   CREATE_TASK: (projectId: number | string) => `/projects/${projectId}/tasks/create`,
   EDIT_TASK: (projectId: number | string, taskId: number | string) => `/projects/${projectId}/tasks/${taskId}`,
+  EDIT_TASK_PATTERN: '/projects/:projectId/tasks/:taskId',
 } as const
