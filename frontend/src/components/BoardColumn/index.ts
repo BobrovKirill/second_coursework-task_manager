@@ -1,11 +1,9 @@
+import type { BoardColumn } from '../../constants/board'
+import type { Task } from '../../types/task'
+
 export { default } from './BoardColumn'
 
 export interface BoardColumnProps {
-  column: BoardColumnType
+  column: BoardColumn
   tasks: Task[]
-  members: Member[]
-  columns: BoardColumnType[]
-  onChangeTaskColumn: (taskId: number, newColumnId: number) => void
-  onEditTask: (task: Task) => void
-  onDeleteTask: (taskId: number) => void
 }
