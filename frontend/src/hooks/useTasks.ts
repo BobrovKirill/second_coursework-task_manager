@@ -26,7 +26,7 @@ export function useTasks(projectId: number | null) {
     setError(null)
 
     try {
-      const data: unknown = await apiRef.current.get(`/tasks/projects/${projectId}`)
+      const data: unknown = await apiRef.current.get(`/projects/${projectId}/tasks`)
       setTasks(normalizeTasks(data))
     }
     catch {

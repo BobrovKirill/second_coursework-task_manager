@@ -1,37 +1,41 @@
 import type { FormEvent } from 'react'
 import type { TaskFormValues } from '../../components/TaskForm'
-import type { Task } from '../../mocks/boardMock'
-import { Container } from '@mui/material'
-import { useMemo, useState } from 'react'
+import { Container, Typography } from '@mui/material'
+import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import TaskForm from '../../components/TaskForm'
-import { mockColumns, mockMembers } from '../../mocks/boardMock'
-import { useTasksStore } from '../../store/tasks'
+import { BOARD_COLUMNS } from '../../constants/board'
+import { ROUTES } from '../../constants/routes'
+import useApi from '../../hooks/useApi'
 
 function CreateTaskPage() {
   const navigate = useNavigate()
   const { projectId } = useParams()
+  const apiRef = useRef(useApi())
 
-  const currentProjectId = Number(projectId ?? '1')
-  const addTask = useTasksStore(state => state.addTask)
-
-  const sortedColumns = useMemo(
-    () => mockColumns.toSorted((a, b) => a.position - b.position),
-    [],
-  )
+  const currentProjectId = projectId !== undefined ? Number(projectId) : null
+  const hasInvalidProjectId = currentProjectId === null || Number.isNaN(currentProjectId)
 
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
     description: '',
-    columnId: String(sortedColumns[0]?.id ?? 101),
-    type: 'frontend',
-    priorityId: '3',
+    status: 'backlog',
+    taskType: 'frontend',
+    priority: '3',
     deadline: '',
     assigneeId: '',
   })
 
+  const [error, setError] = useState<string | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+
   const handleBackToBoard = () => {
-    navigate(`/projects/${currentProjectId}`)
+    if (hasInvalidProjectId) {
+      void navigate(ROUTES.PROJECTS)
+      return
+    }
+
+    void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
   }
 
   const handleFormChange = (field: keyof TaskFormValues, value: string) => {
@@ -41,25 +45,52 @@ function CreateTaskPage() {
     }))
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const createTask = async () => {
+    if (hasInvalidProjectId || isSaving) {
+      return
+    }
 
     const title = form.title.trim()
-    if (!title)
+
+    if (title === '') {
       return
+    }
 
-    addTask({
-      projectId: currentProjectId,
-      columnId: Number(form.columnId),
-      type: form.type as Task['type'],
-      title,
-      description: form.description.trim(),
-      priorityId: Number(form.priorityId),
-      deadline: form.deadline || null,
-      assigneeIds: form.assigneeId ? [Number(form.assigneeId)] : [],
-    })
+    setIsSaving(true)
+    setError(null)
 
-    navigate(`/projects/${currentProjectId}`)
+    try {
+      await apiRef.current.post(`/projects/${currentProjectId}/tasks`, {
+        title,
+        description: form.description.trim() || null,
+        status: form.status,
+        taskType: form.taskType || null,
+        priority: Number(form.priority),
+        deadline: form.deadline || null,
+        assigneeId: form.assigneeId !== '' ? Number(form.assigneeId) : null,
+      })
+
+      void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
+    }
+    catch {
+      setError('Не удалось создать задачу')
+    }
+    finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    void createTask()
+  }
+
+  if (hasInvalidProjectId) {
+    return (
+      <Typography color="error">
+        Не удалось определить проект
+      </Typography>
+    )
   }
 
   return (
@@ -75,13 +106,12 @@ function CreateTaskPage() {
     >
       <TaskForm
         title="Создать задачу"
-        description="Заполните поля и сохраните новую задачу."
+        description={error ?? 'Заполните поля и сохраните новую задачу.'}
         values={form}
-        columns={sortedColumns}
-        members={mockMembers}
+        columns={BOARD_COLUMNS}
         onChange={handleFormChange}
         onSubmit={handleSubmit}
-        submitLabel="Создать задачу"
+        submitLabel={isSaving ? 'Сохранение...' : 'Создать задачу'}
         onCancel={handleBackToBoard}
         cancelLabel="Отмена"
       />
