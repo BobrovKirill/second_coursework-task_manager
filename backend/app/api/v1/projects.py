@@ -9,11 +9,16 @@ from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate, Proje
 from app.models.user import User
 from app.schemas.user import UserRead
 from app.schemas.project_member import MemberRoleAssign
+from app.schemas.task import TaskCreate, TaskRead
+from app.services.task_service import TaskService
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 async def get_project_service(db: AsyncSession = Depends(get_db)):
     return ProjectService(db)
+
+async def get_task_service(db: AsyncSession = Depends(get_db)):
+    return TaskService(db)
 
 @router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project(
@@ -31,6 +36,26 @@ async def get_my_projects(
 ):
     """Получить список проектов текущего пользователя"""
     return await service.get_user_projects(current_user.id)
+
+@router.post("/{project_id}/tasks", response_model=TaskRead, status_code=status.HTTP_201_CREATED)
+async def create_project_task(
+    project_id: int,
+    data: TaskCreate,
+    service: TaskService = Depends(get_task_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Создать задачу в проекте"""
+    return await service.create_task(project_id, data, current_user.id)
+
+
+@router.get("/{project_id}/tasks", response_model=List[TaskRead])
+async def get_project_tasks(
+    project_id: int,
+    service: TaskService = Depends(get_task_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Получить задачи проекта"""
+    return await service.get_project_tasks(project_id, current_user.id)
 
 @router.get("/{project_id}", response_model=ProjectWithMembers)
 async def get_project(

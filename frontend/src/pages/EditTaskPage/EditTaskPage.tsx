@@ -1,38 +1,82 @@
 import type { FormEvent } from 'react'
 import type { TaskFormValues } from '../../components/TaskForm'
-import type { Task } from '../../mocks/boardMock'
-import { Container } from '@mui/material'
-import { useMemo, useState } from 'react'
+import type { Task } from '../../types/task'
+import { Container, Typography } from '@mui/material'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import TaskForm from '../../components/TaskForm'
-import { mockColumns, mockMembers } from '../../mocks/boardMock'
-import { useTasksStore } from '../../store/tasks'
+import { BOARD_COLUMNS } from '../../constants/board'
+import { ROUTES } from '../../constants/routes'
+import useApi from '../../hooks/useApi'
 
 function EditTaskPage() {
   const navigate = useNavigate()
-  const { projectId, taksId } = useParams()
+  const { projectId, taskId } = useParams()
+  const apiRef = useRef(useApi())
 
-  const currentProjectId = Number(projectId ?? '1')
-  const addTask = useTasksStore(state => state.addTask)
+  const currentProjectId = projectId !== undefined ? Number(projectId) : null
+  const currentTaskId = taskId !== undefined ? Number(taskId) : null
 
-  const sortedColumns = useMemo(
-    () => mockColumns.toSorted((a, b) => a.position - b.position),
-    [],
-  )
+  const hasInvalidProjectId = currentProjectId === null || Number.isNaN(currentProjectId)
+  const hasInvalidTaskId = currentTaskId === null || Number.isNaN(currentTaskId)
 
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
     description: '',
-    columnId: String(sortedColumns[0]?.id ?? 101),
-    type: 'frontend',
-    priorityId: '3',
+    status: 'backlog',
+    taskType: '',
+    priority: '3',
     deadline: '',
     assigneeId: '',
   })
 
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+
   const handleBackToBoard = () => {
-    navigate(`/projects/${currentProjectId}`)
+    if (hasInvalidProjectId) {
+      void navigate(ROUTES.PROJECTS)
+      return
+    }
+
+    void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
   }
+
+  useEffect(() => {
+    const loadTask = async () => {
+      if (hasInvalidTaskId) {
+        setIsLoading(false)
+        return
+      }
+
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const response: unknown = await apiRef.current.get(`/tasks/${currentTaskId}`)
+        const task = response as Task
+
+        setForm({
+          title: task.title,
+          description: task.description ?? '',
+          status: task.status,
+          taskType: task.taskType ?? '',
+          priority: String(task.priority),
+          deadline: task.deadline?.slice(0, 10) ?? '',
+          assigneeId: task.assigneeId !== null ? String(task.assigneeId) : '',
+        })
+      }
+      catch {
+        setError('Не удалось загрузить задачу')
+      }
+      finally {
+        setIsLoading(false)
+      }
+    }
+
+    void loadTask()
+  }, [currentTaskId, hasInvalidTaskId])
 
   const handleFormChange = (field: keyof TaskFormValues, value: string) => {
     setForm(prev => ({
@@ -41,25 +85,60 @@ function EditTaskPage() {
     }))
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const updateTask = async () => {
+    if (hasInvalidProjectId || hasInvalidTaskId || isSaving) {
+      return
+    }
 
     const title = form.title.trim()
-    if (!title)
+
+    if (title === '') {
       return
+    }
 
-    addTask({
-      projectId: currentProjectId,
-      columnId: Number(form.columnId),
-      type: form.type as Task['type'],
-      title,
-      description: form.description.trim(),
-      priorityId: Number(form.priorityId),
-      deadline: form.deadline || null,
-      assigneeIds: form.assigneeId ? [Number(form.assigneeId)] : [],
-    })
+    setIsSaving(true)
+    setError(null)
 
-    navigate(`/projects/${currentProjectId}`)
+    try {
+      await apiRef.current.put(`/tasks/${currentTaskId}`, {
+        title,
+        description: form.description.trim() || null,
+        status: form.status,
+        taskType: form.taskType || null,
+        priority: Number(form.priority),
+        deadline: form.deadline || null,
+        assigneeId: form.assigneeId !== '' ? Number(form.assigneeId) : null,
+      })
+
+      void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
+    }
+    catch {
+      setError('Не удалось сохранить задачу')
+    }
+    finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    void updateTask()
+  }
+
+  if (hasInvalidProjectId || hasInvalidTaskId) {
+    return (
+      <Typography color="error">
+        Не удалось определить задачу
+      </Typography>
+    )
+  }
+
+  if (isLoading) {
+    return (
+      <Typography>
+        Загрузка задачи...
+      </Typography>
+    )
   }
 
   return (
@@ -74,14 +153,13 @@ function EditTaskPage() {
       }}
     >
       <TaskForm
-        title="Создать задачу"
-        description="Заполните поля и сохраните новую задачу."
+        title="Редактировать задачу"
+        description={error ?? 'Измените поля и сохраните задачу.'}
         values={form}
-        columns={sortedColumns}
-        members={mockMembers}
+        columns={BOARD_COLUMNS}
         onChange={handleFormChange}
         onSubmit={handleSubmit}
-        submitLabel="Создать задачу"
+        submitLabel={isSaving ? 'Сохранение...' : 'Сохранить задачу'}
         onCancel={handleBackToBoard}
         cancelLabel="Отмена"
       />

@@ -1,5 +1,5 @@
-import { TASK_TYPE_OPTIONS } from '../../mocks/boardMock';
-import { type FormEvent } from "react";
+import type { FormEvent } from 'react'
+import type { TaskStatus } from '../../types/task'
 import {
   Button,
   MenuItem,
@@ -7,58 +7,65 @@ import {
   Stack,
   TextField,
   Typography,
-} from "@mui/material";
-import styles from "./style.module.css";
+} from '@mui/material'
+import styles from './style.module.css'
 
-export type TaskFormValues = {
-  title: string;
-  description: string;
-  columnId: string;
-  type: string;
-  priorityId: string;
-  deadline: string;
-  assigneeId: string;
-};
+export interface TaskFormValues {
+  title: string
+  description: string
+  status: TaskStatus
+  taskType: string
+  priority: string
+  deadline: string
+  assigneeId: string
+}
 
-type TaskFormProps = {
-  title: string;
-  description?: string;
-  values: TaskFormValues;
+interface TaskFormProps {
+  title: string
+  description?: string
+  values: TaskFormValues
   columns: Array<{
-    id: number;
-    title: string;
-  }>;
-  members: Array<{
-    id: number;
-    name: string;
-  }>;
-  onChange: (field: keyof TaskFormValues, value: string) => void;
-  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
-  submitLabel: string;
-  onCancel?: () => void;
-  cancelLabel?: string;
-};
+    status: TaskStatus
+    title: string
+  }>
+  members?: Array<{
+    id: number
+    name: string
+  }>
+  onChange: (field: keyof TaskFormValues, value: string) => void
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void
+  submitLabel: string
+  onCancel?: () => void
+  cancelLabel?: string
+}
+
+const taskTypeOptions = [
+  { value: 'frontend', label: 'Фронтенд' },
+  { value: 'backend', label: 'Бэкенд' },
+  { value: 'design', label: 'Дизайн' },
+  { value: 'research', label: 'Исследование' },
+]
 
 const priorityOptions = [
-  { value: "1", label: "Минимальный" },
-  { value: "2", label: "Низкий" },
-  { value: "3", label: "Средний" },
-  { value: "4", label: "Высокий" },
-  { value: "5", label: "Критический" },
-];
+  { value: '1', label: 'Минимальный' },
+  { value: '2', label: 'Низкий' },
+  { value: '3', label: 'Средний' },
+  { value: '4', label: 'Высокий' },
+  { value: '5', label: 'Критический' },
+]
 
-const TaskForm = ({
+function TaskForm({
   title,
   description,
   values,
   columns,
-  members,
+  members = [],
   onChange,
   onSubmit,
   submitLabel,
   onCancel,
-  cancelLabel = "Отмена",
-}: TaskFormProps) => {
+  cancelLabel = 'Отмена',
+}: TaskFormProps) {
   return (
     <Paper className={styles.root} elevation={0}>
       <Stack component="form" spacing={2} onSubmit={onSubmit}>
@@ -66,7 +73,7 @@ const TaskForm = ({
           {title}
         </Typography>
 
-        {description && (
+        {description !== undefined && description !== '' && (
           <Typography variant="body2" color="text.secondary">
             {description}
           </Typography>
@@ -76,7 +83,7 @@ const TaskForm = ({
           label="Название"
           size="small"
           value={values.title}
-          onChange={(e) => onChange("title", e.target.value)}
+          onChange={event => onChange('title', event.target.value)}
           required
         />
 
@@ -88,7 +95,7 @@ const TaskForm = ({
           minRows={2}
           maxRows={8}
           value={values.description}
-          onChange={(e) => onChange("description", e.target.value)}
+          onChange={event => onChange('description', event.target.value)}
           placeholder="Подробно опишите задачу"
         />
 
@@ -97,13 +104,13 @@ const TaskForm = ({
             select
             label="Статус"
             size="small"
-            value={values.columnId}
-            onChange={(e) => onChange("columnId", e.target.value)}
+            value={values.status}
+            onChange={event => onChange('status', event.target.value)}
             className={styles.compactField}
             fullWidth
           >
-            {columns.map((column) => (
-              <MenuItem key={column.id} value={String(column.id)}>
+            {columns.map(column => (
+              <MenuItem key={column.status} value={column.status}>
                 {column.title}
               </MenuItem>
             ))}
@@ -113,12 +120,13 @@ const TaskForm = ({
             select
             label="Тип"
             size="small"
-            value={values.type}
-            onChange={(e) => onChange("type", e.target.value)}
+            value={values.taskType}
+            onChange={event => onChange('taskType', event.target.value)}
             className={styles.compactField}
             fullWidth
           >
-            {TASK_TYPE_OPTIONS.map((taskType) => (
+            <MenuItem value="">Не выбран</MenuItem>
+            {taskTypeOptions.map(taskType => (
               <MenuItem key={taskType.value} value={taskType.value}>
                 {taskType.label}
               </MenuItem>
@@ -129,12 +137,12 @@ const TaskForm = ({
             select
             label="Приоритет"
             size="small"
-            value={values.priorityId}
-            onChange={(e) => onChange("priorityId", e.target.value)}
+            value={values.priority}
+            onChange={event => onChange('priority', event.target.value)}
             className={styles.compactField}
             fullWidth
           >
-            {priorityOptions.map((priority) => (
+            {priorityOptions.map(priority => (
               <MenuItem key={priority.value} value={priority.value}>
                 {priority.label}
               </MenuItem>
@@ -146,7 +154,7 @@ const TaskForm = ({
             type="date"
             size="small"
             value={values.deadline}
-            onChange={(e) => onChange("deadline", e.target.value)}
+            onChange={event => onChange('deadline', event.target.value)}
             InputLabelProps={{ shrink: true }}
             className={styles.compactField}
             fullWidth
@@ -157,12 +165,12 @@ const TaskForm = ({
             label="Исполнитель"
             size="small"
             value={values.assigneeId}
-            onChange={(e) => onChange("assigneeId", e.target.value)}
+            onChange={event => onChange('assigneeId', event.target.value)}
             className={styles.compactField}
             fullWidth
           >
             <MenuItem value="">Не выбран</MenuItem>
-            {members.map((member) => (
+            {members.map(member => (
               <MenuItem key={member.id} value={String(member.id)}>
                 {member.name}
               </MenuItem>
@@ -175,7 +183,7 @@ const TaskForm = ({
             {submitLabel}
           </Button>
 
-          {onCancel && (
+          {onCancel !== undefined && (
             <Button variant="outlined" onClick={onCancel}>
               {cancelLabel}
             </Button>
@@ -183,7 +191,7 @@ const TaskForm = ({
         </Stack>
       </Stack>
     </Paper>
-  );
-};
+  )
+}
 
-export default TaskForm;
+export default TaskForm
