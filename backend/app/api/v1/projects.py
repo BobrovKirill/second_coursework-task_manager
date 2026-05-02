@@ -2,11 +2,13 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_db
+from app.core.permissions import require_permission
 from app.services.project_service import ProjectService
 from app.core.deps import get_current_user
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate, ProjectWithMembers, ProjectListItem
 from app.models.user import User
 from app.schemas.user import UserRead
+from app.schemas.project_member import MemberRoleAssign
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -44,7 +46,7 @@ async def update_project(
     project_id: int,
     data: ProjectUpdate,
     service: ProjectService = Depends(get_project_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("delete_project"))
 ):
     """Обновить проект"""
     return await service.update_project(project_id, data, current_user.id)
@@ -53,7 +55,7 @@ async def update_project(
 async def delete_project(
     project_id: int,
     service: ProjectService = Depends(get_project_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("delete_project"))
 ):
     """Удалить проект"""
     await service.delete_project(project_id, current_user.id)
@@ -63,7 +65,7 @@ async def add_member(
     project_id: int,
     user_id: int,
     service: ProjectService = Depends(get_project_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("manage_members"))
 ):
     """Добавить участника в проект"""
     return await service.add_member(project_id, user_id, current_user.id)
@@ -82,7 +84,18 @@ async def remove_member(
     project_id: int,
     user_id: int,
     service: ProjectService = Depends(get_project_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(require_permission("manage_members"))
 ):
     """Удалить участника из проекта"""
     await service.remove_member(project_id, user_id, current_user.id)
+
+@router.put("/{project_id}/members/{user_id}/role", response_model=dict)
+async def assign_role(
+    project_id: int,
+    user_id: int,
+    data: MemberRoleAssign,
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(require_permission("assign_role"))
+):
+    """Назначить роль участнику"""
+    return await service.assign_role(project_id, user_id, data.role_name, current_user.id)

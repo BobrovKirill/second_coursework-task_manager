@@ -6,6 +6,8 @@ from app.api.v1.users import router as users
 from app.api.v1.auth import router as auth
 from app.api.v1.projects import router as projects 
 from app.api.v1.tasks import router as tasks
+from app.core.database import AsyncSessionLocal
+from app.core.seeds import seed_roles_and_permissions
 
 # Создание приложения
 app = FastAPI(
@@ -44,3 +46,9 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "ok"}
+
+# создаем декоратор, который запускается при запуске сервера для заполнения roles и permissions, если они не заполнены
+@app.on_event("startup")
+async def startup_event():
+    async with AsyncSessionLocal() as db:
+        await seed_roles_and_permissions(db)

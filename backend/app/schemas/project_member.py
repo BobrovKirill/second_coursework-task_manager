@@ -14,3 +14,6 @@ class ProjectMemberRead(BaseModel):
 
 class ProjectMemberAdd(BaseModel):
     user_id: int
+
+class MemberRoleAssign(BaseModel):
+    role_name: str

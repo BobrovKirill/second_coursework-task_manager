@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, ConfigDict, model_validator
 from datetime import datetime
 from humps import camelize
@@ -82,6 +82,8 @@ class UserRead(UserBase):
     position: Optional[str] = None
     employee_type: Optional[str] = None
     avatar: Optional[str] = None
+    role: Optional[str] = None
+    permissions: List[str] = []
 
     model_config = ConfigDict(
         alias_generator=camelize,

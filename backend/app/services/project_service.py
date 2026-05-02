@@ -1,9 +1,14 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
+from sqlalchemy import select
+
+from app.models import ProjectMemberRole
+from app.models.role import Role
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.project_member_repository import ProjectMemberRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.project import ProjectCreate, ProjectUpdate
+
 
 class ProjectService:
     def __init__(self, db: AsyncSession):
@@ -11,108 +16,133 @@ class ProjectService:
         self.member_repo = ProjectMemberRepository(db)
         self.user_repo = UserRepository(db)
         self.db = db
-    
+
     async def create_project(self, data: ProjectCreate, current_user_id: int):
         """Создать проект"""
         project = await self.project_repo.create(data, current_user_id)
-        
+
+        result = await self.db.execute(select(Role).where(Role.name == "admin"))
+        admin_role = result.scalar_one()
+
+        member_role = ProjectMemberRole(
+            project_id=project.id,
+            user_id=current_user_id,
+            role_id=admin_role.id
+        )
+        self.db.add(member_role)
         await self.member_repo.add_member(project.id, current_user_id)
-        
+        await self.db.commit()
+
         return project
-    
+
     async def get_project(self, project_id: int, current_user_id: int):
-        """Получить проект с проверкой доступа"""
         project = await self.project_repo.get_by_id(project_id)
-        
         if not project:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Project not found"
-            )
-        
-        if not await self._can_view_project(project, current_user_id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have access to this project"
-            )
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+        if not await self.member_repo.is_member(project_id, current_user_id):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have access to this project")
+
         return project
-    
+
     async def get_user_projects(self, user_id: int):
         """Получить проекты пользователя"""
         return await self.project_repo.get_user_projects(user_id)
-    
+
     async def update_project(self, project_id: int, data: ProjectUpdate, current_user_id: int):
         """Обновить проект"""
         project = await self.project_repo.get_by_id(project_id)
-        
+
         if not project:
-            raise HTTPException(404, "Project not found")
-        
-        if project.owner_id != current_user_id:
-            raise HTTPException(403, "Only project owner can update")
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
         return await self.project_repo.update(project_id, data)
-    
+
     async def delete_project(self, project_id: int, current_user_id: int):
         """Удалить проект"""
         project = await self.project_repo.get_by_id(project_id)
-        
+
         if not project:
-            raise HTTPException(404, "Project not found")
-        
-        if project.owner_id != current_user_id:
-            raise HTTPException(403, "Only project owner can delete")
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
         return await self.project_repo.delete(project_id)
-    
+
     async def add_member(self, project_id: int, user_id: int, current_user_id: int):
         """Добавить участника"""
         project = await self.project_repo.get_by_id(project_id)
         if not project:
-            raise HTTPException(404, "Project not found")
-    
-        if project.owner_id != current_user_id:
-            raise HTTPException(403, "Only project owner can add members")
-    
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
         user = await self.user_repo.get_by_id(user_id)
         if not user:
-            raise HTTPException(404, f"User with id {user_id} not found")
-    
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with id {user_id} not found")
+
         await self.member_repo.add_member(project_id, user_id)
-    
+
+        result = await self.db.execute(select(Role).where(Role.name == "executor"))
+        executor_role = result.scalar_one()
+
+        member_role = ProjectMemberRole(
+            project_id=project_id,
+            user_id=user_id,
+            role_id=executor_role.id
+        )
+        self.db.add(member_role)
+        await self.db.commit()
+
         return user
-    
+
     async def remove_member(self, project_id: int, user_id: int, current_user_id: int):
         """Удалить участника"""
         project = await self.project_repo.get_by_id(project_id)
-        
+
         if not project:
-            raise HTTPException(404, "Project not found")
-        
-        if project.owner_id != current_user_id:
-            raise HTTPException(403, "Only project owner can remove members")
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
         if user_id == project.owner_id:
-            raise HTTPException(400, "Cannot remove project owner")
-        
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot remove project owner")
+
         result = await self.member_repo.remove_member(project_id, user_id)
         if not result:
-            raise HTTPException(404, "Member not found")
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
         return {"message": "Member removed successfully"}
-    
+
     async def get_project_members(self, project_id: int, current_user_id: int):
         """Получить список участников"""
         project = await self.project_repo.get_by_id(project_id)
         if not project:
-            raise HTTPException(404, "Project not found")
-        
-        if not await self._can_view_project(project, current_user_id):
-            raise HTTPException(403, "You don't have access to this project")
-        
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
+
+        if not await self.member_repo.is_member(project_id, current_user_id):
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have access to this project")
+
         return await self.member_repo.get_project_members(project_id)
-    
-    async def _can_view_project(self, project, user_id: int) -> bool:
-        """Проверка доступа к проекту"""
-        return project.owner_id == user_id or await self.member_repo.is_member(project.id, user_id)
+
+    async def assign_role(self, project_id: int, user_id: int, role_name: str, current_user_id: int):
+        if not await self.member_repo.is_member(project_id, user_id):
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Участник не найден в проекте")
+
+        result = await self.db.execute(select(Role).where(Role.name == role_name))
+        role = result.scalar_one_or_none()
+        if not role:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Роль '{role_name}' не существует")
+
+        result = await self.db.execute(
+            select(ProjectMemberRole).where(
+                ProjectMemberRole.project_id == project_id,
+                ProjectMemberRole.user_id == user_id
+            )
+        )
+        member_role = result.scalar_one_or_none()
+
+        if member_role:
+            member_role.role_id = role.id
+        else:
+            member_role = ProjectMemberRole(
+                project_id=project_id,
+                user_id=user_id,
+                role_id=role.id
+            )
+            self.db.add(member_role)
+
+        await self.db.commit()
+        return {"message": f"Роль '{role_name}' назначена"}
