@@ -143,12 +143,12 @@ function EditTaskPage() {
 
   return (
     <Container
-      maxWidth="md"
+      maxWidth="lg"
       sx={{
         py: 3,
         minHeight: 'calc(100vh - 120px)',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
       }}
     >
