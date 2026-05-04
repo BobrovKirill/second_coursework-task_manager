@@ -67,45 +67,54 @@ function TaskForm({
   cancelLabel = 'Отмена',
 }: TaskFormProps) {
   return (
-    <Paper className={styles.root} elevation={0}>
-      <Stack component="form" spacing={2} onSubmit={onSubmit}>
-        <Typography variant="h4" component="h1">
-          {title}
+    <Stack component="form" className={styles.form} spacing={2} onSubmit={onSubmit}>
+      <Paper className={styles.taskContent} elevation={0}>
+        <Stack spacing={2}>
+          <Typography variant="h4" component="h1">
+            {title}
+          </Typography>
+
+          {description !== undefined && description !== '' && (
+            <Typography variant="body2" color="text.secondary">
+              {description}
+            </Typography>
+          )}
+
+          <TextField
+            label="Название"
+            size="small"
+            value={values.title}
+            onChange={event => onChange('title', event.target.value)}
+            required
+            fullWidth
+          />
+
+          <TextField
+            className={styles.descriptionField}
+            label="Описание"
+            size="small"
+            multiline
+            minRows={12}
+            value={values.description}
+            onChange={event => onChange('description', event.target.value)}
+            placeholder="Подробно опишите задачу"
+            fullWidth
+          />
+        </Stack>
+      </Paper>
+
+      <div className={styles.controlsBlock}>
+        <Typography variant="subtitle1" className={styles.controlsTitle}>
+          Параметры задачи
         </Typography>
 
-        {description !== undefined && description !== '' && (
-          <Typography variant="body2" color="text.secondary">
-            {description}
-          </Typography>
-        )}
-
-        <TextField
-          label="Название"
-          size="small"
-          value={values.title}
-          onChange={event => onChange('title', event.target.value)}
-          required
-        />
-
-        <TextField
-          className={styles.descriptionField}
-          label="Описание"
-          size="small"
-          multiline
-          minRows={4}
-          value={values.description}
-          onChange={event => onChange('description', event.target.value)}
-          placeholder="Подробно опишите задачу"
-        />
-
-        <div className={styles.fieldsGrid}>
+        <div className={styles.controlsGrid}>
           <TextField
             select
             label="Статус"
             size="small"
             value={values.status}
             onChange={event => onChange('status', event.target.value)}
-            className={styles.compactField}
             fullWidth
           >
             {columns.map(column => (
@@ -121,7 +130,6 @@ function TaskForm({
             size="small"
             value={values.taskType}
             onChange={event => onChange('taskType', event.target.value)}
-            className={styles.compactField}
             fullWidth
           >
             <MenuItem value="">Не выбран</MenuItem>
@@ -138,7 +146,6 @@ function TaskForm({
             size="small"
             value={values.priority}
             onChange={event => onChange('priority', event.target.value)}
-            className={styles.compactField}
             fullWidth
           >
             {priorityOptions.map(priority => (
@@ -155,7 +162,6 @@ function TaskForm({
             value={values.deadline}
             onChange={event => onChange('deadline', event.target.value)}
             InputLabelProps={{ shrink: true }}
-            className={styles.compactField}
             fullWidth
           />
 
@@ -165,7 +171,6 @@ function TaskForm({
             size="small"
             value={values.assigneeId}
             onChange={event => onChange('assigneeId', event.target.value)}
-            className={styles.compactField}
             fullWidth
           >
             <MenuItem value="">Не выбран</MenuItem>
@@ -177,7 +182,7 @@ function TaskForm({
           </TextField>
         </div>
 
-        <Stack direction="row" spacing={1}>
+        <Stack direction="row" spacing={1} className={styles.actions}>
           <Button type="submit" variant="contained">
             {submitLabel}
           </Button>
@@ -188,8 +193,8 @@ function TaskForm({
             </Button>
           )}
         </Stack>
-      </Stack>
-    </Paper>
+      </div>
+    </Stack>
   )
 }
 
