@@ -92,8 +92,7 @@ function TaskForm({
           label="Описание"
           size="small"
           multiline
-          minRows={2}
-          maxRows={8}
+          minRows={4}
           value={values.description}
           onChange={event => onChange('description', event.target.value)}
           placeholder="Подробно опишите задачу"
