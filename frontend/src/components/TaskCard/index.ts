@@ -1,6 +1,14 @@
 import type { Task } from '../../types/task'
 
-export { default } from './TaskCard'
+export interface TaskCardMember {
+  id: number
+  name: string
+}
+
+export interface TaskCardProps {
+  task: Task
+  members?: TaskCardMember[]
+}
 
 export const PRIORITY_MAP: Record<number, string> = {
   1: 'Минимальный',
@@ -17,6 +25,4 @@ export const TASK_TYPE_LABELS: Record<string, string> = {
   research: 'Исследование',
 }
 
-export interface TaskCardProps {
-  task: Task
-}
+export { default } from './TaskCard'

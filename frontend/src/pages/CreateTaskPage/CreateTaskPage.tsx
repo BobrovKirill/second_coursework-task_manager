@@ -7,6 +7,7 @@ import TaskForm from '../../components/TaskForm'
 import { BOARD_COLUMNS } from '../../constants/board'
 import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
+import { useProjectMembers } from '../../hooks/useProjectMembers'
 
 function CreateTaskPage() {
   const navigate = useNavigate()
@@ -15,6 +16,13 @@ function CreateTaskPage() {
 
   const currentProjectId = projectId !== undefined ? Number(projectId) : null
   const hasInvalidProjectId = currentProjectId === null || Number.isNaN(currentProjectId)
+
+  const { members } = useProjectMembers(currentProjectId)
+
+  const taskFormMembers = members.map(member => ({
+    id: member.id,
+    name: member.username || member.email,
+  }))
 
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
@@ -109,6 +117,7 @@ function CreateTaskPage() {
         description={error ?? 'Заполните поля и сохраните новую задачу.'}
         values={form}
         columns={BOARD_COLUMNS}
+        members={taskFormMembers}
         onChange={handleFormChange}
         onSubmit={handleSubmit}
         submitLabel={isSaving ? 'Сохранение...' : 'Создать задачу'}

@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import BoardColumn from '../../components/BoardColumn'
 import { useBoardColumns } from '../../hooks/useBoardColumn'
+import { useProjectMembers } from '../../hooks/useProjectMembers'
 import { useTasks } from '../../hooks/useTasks'
 import styles from './style.module.css'
 
@@ -12,7 +13,6 @@ function ProjectBoardPage() {
   const { id, projectId } = useParams()
 
   const currentProjectId = Number(projectId ?? id)
-
   const hasInvalidProjectId = Number.isNaN(currentProjectId)
 
   const { tasks, loading, error } = useTasks(
@@ -24,6 +24,15 @@ function ProjectBoardPage() {
     loading: columnsLoading,
     error: columnsError,
   } = useBoardColumns(currentProjectId)
+
+  const { members } = useProjectMembers(
+    hasInvalidProjectId ? null : currentProjectId,
+  )
+
+  const taskMembers = members.map(member => ({
+    id: member.id,
+    name: member.username || member.email,
+  }))
 
   const columnsWithStatuses = useMemo(
     () =>
@@ -80,6 +89,7 @@ function ProjectBoardPage() {
             key={column.id}
             column={column}
             tasks={columnTasks}
+            members={taskMembers}
           />
         )
       })}

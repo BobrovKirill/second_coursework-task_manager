@@ -1,63 +1,80 @@
-import { useState, useEffect, useCallback } from 'react'
-import useApi from './useApi'
 import type { MemberWithSpecialty } from '../types/projectSpecialty'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import useApi from './useApi'
 
-export const useProjectMembers = (projectId: number) => {
+export function useProjectMembers(projectId: number | null) {
   const [members, setMembers] = useState<MemberWithSpecialty[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  
-  const api = useApi()
+
+  const apiRef = useRef(useApi())
+
+  const hasInvalidProjectId = projectId === null || Number.isNaN(projectId)
 
   const fetchMembers = useCallback(async () => {
+    if (hasInvalidProjectId) {
+      setMembers([])
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
+    setError(null)
+
     try {
-      const data: MemberWithSpecialty[] = await api.get(
-        `/projects/${projectId}/members-with-specialties`
+      const data: MemberWithSpecialty[] = await apiRef.current.get(
+        `/projects/${projectId}/members-with-specialties`,
       )
+
       setMembers(data)
-    } catch (err) {
+    }
+    catch (err) {
       setError(err as Error)
-    } finally {
+    }
+    finally {
       setLoading(false)
     }
-  }, [projectId])
+  }, [hasInvalidProjectId, projectId])
 
   const addMember = useCallback(async (userId: number) => {
-    try {
-      const newMember: MemberWithSpecialty = await api.post(
-        `/projects/${projectId}/members/${userId}`
-      )
-      setMembers(prev => [...prev, newMember])
-      return newMember
-    } catch (err) {
-      throw err
+    if (hasInvalidProjectId) {
+      throw new Error('Не удалось определить проект')
     }
-  }, [projectId])
+
+    const newMember: MemberWithSpecialty = await apiRef.current.post(
+      `/projects/${projectId}/members/${userId}`,
+    )
+
+    setMembers(prev => [...prev, newMember])
+
+    return newMember
+  }, [hasInvalidProjectId, projectId])
 
   const removeMember = useCallback(async (userId: number) => {
-    try {
-      await api.delete(`/projects/${projectId}/members/${userId}`)
-      setMembers(prev => prev.filter(m => m.id !== userId))
-    } catch (err) {
-      throw err
+    if (hasInvalidProjectId) {
+      throw new Error('Не удалось определить проект')
     }
-  }, [projectId])
+
+    await apiRef.current.delete(`/projects/${projectId}/members/${userId}`)
+
+    setMembers(prev => prev.filter(member => member.id !== userId))
+  }, [hasInvalidProjectId, projectId])
 
   const assignSpecialty = useCallback(async (userId: number, specialtyId: number | null) => {
-    try {
-      await api.put(
-        `/projects/${projectId}/members/${userId}/specialty`,
-        { specialty_id: specialtyId }
-      )
-      await fetchMembers()
-    } catch (err) {
-      throw err
+    if (hasInvalidProjectId) {
+      throw new Error('Не удалось определить проект')
     }
-  }, [projectId, fetchMembers])
+
+    await apiRef.current.put(
+      `/projects/${projectId}/members/${userId}/specialty`,
+      { specialty_id: specialtyId },
+    )
+
+    await fetchMembers()
+  }, [fetchMembers, hasInvalidProjectId, projectId])
 
   useEffect(() => {
-    fetchMembers()
+    void fetchMembers()
   }, [fetchMembers])
 
   return {
@@ -67,6 +84,6 @@ export const useProjectMembers = (projectId: number) => {
     addMember,
     removeMember,
     assignSpecialty,
-    refresh: fetchMembers
+    refresh: fetchMembers,
   }
 }
