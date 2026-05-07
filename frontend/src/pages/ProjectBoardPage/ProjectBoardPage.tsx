@@ -2,6 +2,7 @@ import { Box, CircularProgress, Typography } from '@mui/material'
 import { useParams } from 'react-router-dom'
 import BoardColumn from '../../components/BoardColumn'
 import { BOARD_COLUMNS } from '../../constants/board'
+import { useProjectMembers } from '../../hooks/useProjectMembers'
 import { useTasks } from '../../hooks/useTasks'
 import styles from './style.module.css'
 
@@ -11,6 +12,13 @@ function ProjectBoardPage() {
   const currentProjectId = id !== undefined ? Number(id) : null
 
   const { tasks, loading, error } = useTasks(currentProjectId)
+
+  const { members } = useProjectMembers(currentProjectId)
+
+  const taskMembers = members.map(member => ({
+    id: member.id,
+    name: member.username || member.email,
+  }))
 
   const hasInvalidProjectId = currentProjectId === null || Number.isNaN(currentProjectId)
 
@@ -48,6 +56,7 @@ function ProjectBoardPage() {
             key={column.status}
             column={column}
             tasks={columnTasks}
+            members={taskMembers}
           />
         )
       })}

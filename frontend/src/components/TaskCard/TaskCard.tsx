@@ -5,7 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { PRIORITY_MAP, TASK_TYPE_LABELS } from './index'
 import styles from './style.module.css'
 
-function TaskCard({ task }: TaskCardProps) {
+function TaskCard({ task, members = [] }: TaskCardProps) {
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -19,6 +19,10 @@ function TaskCard({ task }: TaskCardProps) {
 
   const taskTypeLabel = task.taskType !== null
     ? TASK_TYPE_LABELS[task.taskType] ?? task.taskType
+    : '—'
+
+  const assigneeName = task.assigneeId !== null
+    ? members.find(member => member.id === task.assigneeId)?.name ?? `#${task.assigneeId}`
     : '—'
 
   return (
@@ -65,7 +69,7 @@ function TaskCard({ task }: TaskCardProps) {
           <Typography variant="caption">
             Исполнитель:
             {' '}
-            {task.assigneeId ?? '—'}
+            {assigneeName}
           </Typography>
 
           <IconButton

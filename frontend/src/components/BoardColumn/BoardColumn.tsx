@@ -3,7 +3,7 @@ import { Box, Paper, Typography } from '@mui/material'
 import TaskCard from '../TaskCard'
 import styles from './style.module.css'
 
-function BoardColumn({ column, tasks }: BoardColumnProps) {
+function BoardColumn({ column, tasks, members = [] }: BoardColumnProps) {
   return (
     <Paper elevation={0} className={styles.column}>
       <Typography variant="subtitle1" className={styles.title}>
@@ -24,6 +24,7 @@ function BoardColumn({ column, tasks }: BoardColumnProps) {
                 <TaskCard
                   key={task.id}
                   task={task}
+                  members={members}
                 />
               ))
             )}

@@ -8,6 +8,7 @@ import TaskForm from '../../components/TaskForm'
 import { BOARD_COLUMNS } from '../../constants/board'
 import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
+import { useProjectMembers } from '../../hooks/useProjectMembers'
 
 function EditTaskPage() {
   const navigate = useNavigate()
@@ -19,6 +20,13 @@ function EditTaskPage() {
 
   const hasInvalidProjectId = currentProjectId === null || Number.isNaN(currentProjectId)
   const hasInvalidTaskId = currentTaskId === null || Number.isNaN(currentTaskId)
+
+  const { members } = useProjectMembers(currentProjectId)
+
+  const taskFormMembers = members.map(member => ({
+    id: member.id,
+    name: member.username || member.email,
+  }))
 
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
@@ -157,6 +165,7 @@ function EditTaskPage() {
         description={error ?? 'Измените поля и сохраните задачу.'}
         values={form}
         columns={BOARD_COLUMNS}
+        members={taskFormMembers}
         onChange={handleFormChange}
         onSubmit={handleSubmit}
         submitLabel={isSaving ? 'Сохранение...' : 'Сохранить задачу'}
