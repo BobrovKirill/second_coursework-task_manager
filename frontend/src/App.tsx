@@ -9,6 +9,7 @@ import EditTaskPage from './pages/EditTaskPage'
 import MainPage from './pages/MainPage'
 import ProfilePage from './pages/ProfilePage'
 import ProjectPage from './pages/ProjectPage'
+import ProjectSettingsPage from './pages/ProjectSettingsPage'
 import styles from './styles/app.module.css'
 
 const theme = createTheme({
@@ -36,6 +37,7 @@ function App() {
               <Route path={ROUTES.PROJECT_DETAIL(':id')} element={<ProjectPage />}>
                 <Route index element={<Board />} />
                 <Route path="board" element={<Board />} />
+                <Route path="settings" element={<ProjectSettingsPage />} />
               </Route>
             </Route>
 

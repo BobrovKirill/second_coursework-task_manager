@@ -15,6 +15,7 @@ from app.core.config import settings
 from app.core.database import Base
 from app.models.user import User
 from app.models.project import Project
+from app.models.board_column import BoardColumn
 from app.models.project_member import ProjectMember
 print("DB URL:", settings.database_url)
 

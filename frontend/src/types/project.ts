@@ -1,5 +1,7 @@
 import type { UserListItem } from './user'
 
+export type BackgroundType = 'default' | 'color' | 'gradient' | 'image'
+
 export interface Project {
   id: number
   name: string
@@ -8,6 +10,10 @@ export interface Project {
   created_at: string
   updated_at: string
   is_active: boolean
+  icon_url: string | null
+  font_color: string
+  background_type: BackgroundType
+  background_value: string | null
 }
 
 export interface ProjectWithMembers extends Project {
@@ -22,6 +28,10 @@ export interface ProjectCreate {
 export interface ProjectUpdate {
   name?: string
   description?: string
+  icon_url?: string | null
+  font_color?: string
+  background_type?: BackgroundType
+  background_value?: string | null
 }
 
 export interface ProjectListItem extends Project {

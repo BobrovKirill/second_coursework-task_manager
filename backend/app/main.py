@@ -6,6 +6,7 @@ from app.api.v1.users import router as users
 from app.api.v1.auth import router as auth
 from app.api.v1.projects import router as projects 
 from app.api.v1.tasks import router as tasks
+from app.api.v1.columns import router as columns
 from app.core.database import AsyncSessionLocal
 from app.core.seeds import seed_roles_and_permissions
 
@@ -32,7 +33,7 @@ app.include_router(users, prefix=settings.API_V1_PREFIX)
 app.include_router(auth, prefix=settings.API_V1_PREFIX)
 app.include_router(projects, prefix=settings.API_V1_PREFIX)
 app.include_router(tasks, prefix=settings.API_V1_PREFIX)
-
+app.include_router(columns, prefix=settings.API_V1_PREFIX)
 
 
 @app.get("/")

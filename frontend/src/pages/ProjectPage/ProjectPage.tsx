@@ -21,6 +21,11 @@ function ProjectPage() {
     navigate(`/projects/${projectId}/tasks/create`)
   }
 
+  const truncateText = (text: string, maxLength: number = 75) => {
+    if (text.length <= maxLength) return text
+    return text.substring(0, maxLength).trim() + '...'
+  }
+
   if (loading) {
     return (
       <Container maxWidth="xl" className={styles.container}>
@@ -48,9 +53,19 @@ function ProjectPage() {
           <Typography variant="h4" className={styles.projectName}>
             { project.name }
           </Typography>
-          { project.description && (
-            <Typography variant="body1" color="text.secondary">
-              {project.description}
+          {project.description && (
+            <Typography 
+              variant="body1" 
+              color="text.secondary"
+              sx={{
+                maxWidth: '600px',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+              title={project.description}
+            >
+              {truncateText(project.description)}
             </Typography>
           )}
         </div>
