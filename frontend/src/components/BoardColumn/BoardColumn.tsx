@@ -3,7 +3,7 @@ import { Box, Paper, Typography } from '@mui/material'
 import TaskCard from '../TaskCard'
 import styles from './style.module.css'
 
-function BoardColumn({ column, tasks, members = [] }: BoardColumnProps) {
+function BoardColumn({ column, tasks, members = [], onDeleteTask }: BoardColumnProps) {
   return (
     <Paper elevation={0} className={styles.column}>
       <Typography variant="subtitle1" className={styles.title}>
@@ -25,6 +25,7 @@ function BoardColumn({ column, tasks, members = [] }: BoardColumnProps) {
                   key={task.id}
                   task={task}
                   members={members}
+                  onDeleteTask={onDeleteTask}
                 />
               ))
             )}

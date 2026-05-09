@@ -8,6 +8,7 @@ export interface TaskCardMember {
 export interface TaskCardProps {
   task: Task
   members?: TaskCardMember[]
+  onDeleteTask?: (taskId: number) => void | Promise<void>
 }
 
 export const PRIORITY_MAP: Record<number, string> = {

@@ -1,11 +1,12 @@
 import type { TaskCardProps } from './index'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { Card, CardContent, Chip, IconButton, Stack, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PRIORITY_MAP, TASK_TYPE_LABELS } from './index'
 import styles from './style.module.css'
 
-function TaskCard({ task, members = [] }: TaskCardProps) {
+function TaskCard({ task, members = [], onDeleteTask }: TaskCardProps) {
   const { id } = useParams()
   const navigate = useNavigate()
 
@@ -15,6 +16,20 @@ function TaskCard({ task, members = [] }: TaskCardProps) {
     }
 
     void navigate(`/projects/${id}/tasks/${task.id}`)
+  }
+
+  function handleDeleteTask() {
+    if (onDeleteTask === undefined) {
+      return
+    }
+
+    const isConfirmed = window.confirm('Удалить задачу?')
+
+    if (!isConfirmed) {
+      return
+    }
+
+    void onDeleteTask(task.id)
   }
 
   const taskTypeLabel = task.taskType !== null
@@ -72,13 +87,24 @@ function TaskCard({ task, members = [] }: TaskCardProps) {
             {assigneeName}
           </Typography>
 
-          <IconButton
-            size="small"
-            className={styles.iconButton}
-            onClick={handleOpenTask}
-          >
-            <EditOutlinedIcon fontSize="small" />
-          </IconButton>
+          <Stack direction="row" spacing={0.5}>
+            <IconButton
+              size="small"
+              className={styles.iconButton}
+              onClick={handleOpenTask}
+            >
+              <EditOutlinedIcon fontSize="small" />
+            </IconButton>
+
+            <IconButton
+              size="small"
+              color="error"
+              className={styles.iconButton}
+              onClick={handleDeleteTask}
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Stack>
         </Stack>
       </CardContent>
     </Card>
