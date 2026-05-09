@@ -37,6 +37,19 @@ export function useTasks(projectId: number | null) {
     }
   }, [projectId])
 
+  const deleteTask = useCallback(async (taskId: number) => {
+    setError(null)
+
+    try {
+      await apiRef.current.delete(`/tasks/${taskId}`)
+
+      setTasks(prev => prev.filter(task => task.id !== taskId))
+    }
+    catch {
+      setError('Не удалось удалить задачу')
+    }
+  }, [])
+
   useEffect(() => {
     void fetchTasks()
   }, [fetchTasks])
@@ -46,5 +59,6 @@ export function useTasks(projectId: number | null) {
     loading,
     error,
     refreshTasks: fetchTasks,
+    deleteTask,
   }
 }

@@ -11,7 +11,7 @@ function ProjectBoardPage() {
 
   const currentProjectId = id !== undefined ? Number(id) : null
 
-  const { tasks, loading, error } = useTasks(currentProjectId)
+  const { tasks, loading, error, deleteTask } = useTasks(currentProjectId)
 
   const { members } = useProjectMembers(currentProjectId)
 
@@ -57,6 +57,7 @@ function ProjectBoardPage() {
             column={column}
             tasks={columnTasks}
             members={taskMembers}
+            onDeleteTask={deleteTask}
           />
         )
       })}
