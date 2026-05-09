@@ -1,7 +1,8 @@
 import type { TaskCardProps } from './index'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import { Card, CardContent, Chip, IconButton, Stack, Typography } from '@mui/material'
+import { Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PRIORITY_MAP, TASK_TYPE_LABELS } from './index'
 import styles from './style.module.css'
@@ -9,6 +10,8 @@ import styles from './style.module.css'
 function TaskCard({ task, members = [], onDeleteTask }: TaskCardProps) {
   const { id } = useParams()
   const navigate = useNavigate()
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   function handleOpenTask() {
     if (id === undefined || id.trim() === '') {
@@ -18,17 +21,20 @@ function TaskCard({ task, members = [], onDeleteTask }: TaskCardProps) {
     void navigate(`/projects/${id}/tasks/${task.id}`)
   }
 
-  function handleDeleteTask() {
+  function handleOpenDeleteDialog() {
+    setIsDeleteDialogOpen(true)
+  }
+
+  function handleCloseDeleteDialog() {
+    setIsDeleteDialogOpen(false)
+  }
+
+  function handleConfirmDeleteTask() {
     if (onDeleteTask === undefined) {
       return
     }
 
-    const isConfirmed = window.confirm('Удалить задачу?')
-
-    if (!isConfirmed) {
-      return
-    }
-
+    setIsDeleteDialogOpen(false)
     void onDeleteTask(task.id)
   }
 
@@ -100,13 +106,42 @@ function TaskCard({ task, members = [], onDeleteTask }: TaskCardProps) {
               size="small"
               color="error"
               className={styles.iconButton}
-              onClick={handleDeleteTask}
+              onClick={handleOpenDeleteDialog}
             >
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Stack>
         </Stack>
       </CardContent>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+      >
+        <DialogTitle>
+          Удалить задачу?
+        </DialogTitle>
+
+        <DialogContent>
+          <DialogContentText>
+            Задача будет удалена из проекта. Это действие нельзя будет отменить.
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>
+            Отмена
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmDeleteTask}
+          >
+            Удалить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Card>
   )
 }
