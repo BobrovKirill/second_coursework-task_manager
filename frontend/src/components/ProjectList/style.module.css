@@ -1,0 +1,40 @@
+.project {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    width: 100%;
+}
+
+.projectList {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+}
+
+.projectItem {
+    display: flex;
+}
+
+.projectItem:nth-child(even) {
+    background-color: rgba(115, 115, 115, 0.2);
+}
+
+.mainButton {
+    color: #312f2f;
+    flex: 1;
+}
+
+.buttonActive {
+    color: black;
+}
+
+.actions {
+    display: flex;
+    flex-shrink: 0;
+}
+
+.iconButton {
+    width: auto;
+}

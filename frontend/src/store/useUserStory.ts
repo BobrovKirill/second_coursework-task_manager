@@ -1,13 +1,13 @@
+import type { User, UserState } from '../types/user.ts'
 import { create } from 'zustand'
 import useApi from '../hooks/useApi'
-import type {User, UserState} from "../types/user.ts";
-import {getStoredLastProjectId, saveLastProjectId} from "../utils/projectId.ts"
-
+import { getStoredLastProjectId, saveLastProjectId } from '../utils/projectId.ts'
 
 export const EMPLOYEE_TYPES = ['frontend', 'backend', 'design', 'qa', 'devops', 'manager'] as const
 
 export const useUserStore = create<UserState>((set, get) => {
   const api = useApi()
+  const endpoint = '/users/me'
 
   return {
     user: null,
@@ -17,8 +17,11 @@ export const useUserStore = create<UserState>((set, get) => {
 
     fetchUser: async () => {
       set({ loading: true, error: null })
+      const projectId = get().getLastProjectId()
+      const projectQuery = projectId !== null ? `?project_id=${projectId}` : ''
+
       try {
-        const user: User = await api.get('/users/me')
+        const user: User = await api.get(`${endpoint}${projectQuery}`)
         set({ user })
         return user
       }
@@ -32,8 +35,9 @@ export const useUserStore = create<UserState>((set, get) => {
 
     updateUser: async (data: Partial<User>) => {
       set({ loading: true, error: null })
+
       try {
-        const updated: User = await api.patch('/users/me', data)
+        const updated: User = await api.patch(endpoint, data)
         set({ user: updated })
         return updated
       }
@@ -54,6 +58,9 @@ export const useUserStore = create<UserState>((set, get) => {
 
     uploadAvatar: () => {},
 
+    getRole: () => get().user?.role,
+    getPermissions: () => get().user?.permissions,
+
     setLastProjectId: (projectId: number | null) => {
       saveLastProjectId(projectId)
       set({ lastProjectId: projectId })
@@ -62,6 +69,6 @@ export const useUserStore = create<UserState>((set, get) => {
     getLastProjectId: (): number | null => {
       const state = get()
       return state.lastProjectId
-    }
+    },
   }
 })

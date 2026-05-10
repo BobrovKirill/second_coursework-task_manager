@@ -27,3 +27,14 @@ export interface ProjectUpdate {
 export interface ProjectListItem extends Project {
   member_count: number
 }
+
+export interface ProjectState {
+  projects: ProjectListItem[]
+  currentProject: ProjectWithMembers | null
+  loading: boolean
+  error: string | null
+
+  fetchProjects: () => Promise<void>
+  updateProjectsStore: () => Promise<void>
+  getProjects: () => ProjectListItem[]
+}

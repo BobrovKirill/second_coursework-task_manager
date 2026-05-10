@@ -54,7 +54,7 @@ async def get_me(
 
         result.permissions = await get_user_permissions(project_id, current_user.id, db)
 
-    return UserRead.model_validate(current_user)
+    return result
 
 
 @router.get("/{user_id}", response_model=UserRead)
