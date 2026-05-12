@@ -1,0 +1,316 @@
+.container {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.section {
+  padding: 32px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.pageTitle {
+  margin-bottom: 32px !important;
+  font-weight: 600 !important;
+  color: #1a1a1a;
+}
+
+.sectionTitle {
+  margin-bottom: 20px !important;
+  font-weight: 600 !important;
+  color: #1a1a2e;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.basicSettings {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.iconPlaceholder {
+  width: 100px;
+  height: 100px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.basicFields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  margin-bottom: 0 !important;
+}
+
+.textArea {
+  margin-bottom: 0 !important;
+}
+
+.columnsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 4px;
+}
+
+.columnItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.columnItem:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.columnTitle {
+  flex: 1;
+}
+
+.columnActions {
+  display: flex;
+  gap: 4px;
+}
+
+.membersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 4px;
+}
+
+.memberItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.memberItem:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.memberName {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.emptyMembers {
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+}
+
+.actionButton {
+  padding: 4px !important;
+}
+
+.customizationGroup {
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  margin-bottom: 12px !important;
+  font-weight: 500 !important;
+  color: #444;
+}
+
+.colorPicker {
+  width: 100px;
+  height: 40px;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.largeColorPicker {
+  width: 100%;
+  height: 60px;
+  padding: 4px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.selectField {
+  margin-bottom: 16px !important;
+}
+
+.backgroundConfig {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.configLabel {
+  margin-bottom: 8px !important;
+  color: #555;
+}
+
+.gradientColors {
+  display: flex;
+  gap: 20px;
+}
+
+.gradientColorField {
+  flex: 1;
+}
+
+.hexInput {
+  margin-top: 8px !important;
+}
+
+.gradientAngle {
+  margin-top: 16px !important;
+}
+
+.imagePlaceholder {
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+  margin-top: 16px;
+}
+
+.divider {
+  margin: 24px 0 !important;
+}
+
+.saveSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-end;
+  margin-top: 24px;
+}
+
+.saveAlert {
+  width: 100%;
+  border-radius: 16px;
+}
+
+.saveButton {
+  min-width: 200px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: none;
+  background: #1976d2;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.25);
+}
+
+.saveButton:hover {
+  background: #1565c0;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
+}
+
+.saveButton:disabled {
+  background: #e0e0e0;
+  box-shadow: none;
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+.errorContainer {
+  padding: 24px;
+}
+
+.errorAlert {
+  border-radius: 16px;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .basicSettings {
+    flex-direction: column;
+  }
+  
+  .iconPlaceholder {
+    width: 100%;
+    height: 80px;
+  }
+  
+  .section {
+    padding: 20px;
+  }
+  
+  .gradientColors {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .memberItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .memberActions {
+    align-self: flex-end;
+  }
+}

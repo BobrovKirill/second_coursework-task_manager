@@ -8,13 +8,14 @@ from app.repositories.project_repository import ProjectRepository
 from app.repositories.project_member_repository import ProjectMemberRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.project import ProjectCreate, ProjectUpdate
-
+from app.repositories.board_column_repository import BoardColumnRepository
 
 class ProjectService:
     def __init__(self, db: AsyncSession):
         self.project_repo = ProjectRepository(db)
         self.member_repo = ProjectMemberRepository(db)
         self.user_repo = UserRepository(db)
+        self.column_repo = BoardColumnRepository(db)
         self.db = db
 
     async def create_project(self, data: ProjectCreate, current_user_id: int):
@@ -31,6 +32,7 @@ class ProjectService:
         )
         self.db.add(member_role)
         await self.member_repo.add_member(project.id, current_user_id)
+        await self.column_repo.create_default_columns(project.id)
         await self.db.commit()
 
         return project

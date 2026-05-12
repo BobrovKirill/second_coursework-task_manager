@@ -1,16 +1,18 @@
 import type { FormEvent } from 'react'
 import type { TaskFormValues } from '../../components/TaskForm'
 import type { Task } from '../../mocks/boardMock'
-import { Box } from '@mui/material'
+import { Box, CircularProgress, Alert } from '@mui/material'
 import { useCallback, useMemo, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import BoardColumn from '../../components/BoardColumn'
-import { mockColumns, mockMembers } from '../../mocks/boardMock'
+import { mockMembers } from '../../mocks/boardMock'
 import { useTasksStore } from '../../store/tasks'
+import { useBoardColumns } from '../../hooks/useBoardColumn'
 
 function ProjectBoardPage() {
   const { id, projectId } = useParams()
   const currentProjectId = Number(projectId ?? id ?? 1)
+  const { columns: boardColumns, loading: columnsLoading, error: columnsError } = useBoardColumns(currentProjectId)
 
   const tasks = useTasksStore(state => state.tasks)
   const updateTask = useTasksStore(state => state.updateTask)
@@ -19,20 +21,20 @@ function ProjectBoardPage() {
 
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
 
+  const sortedColumns = useMemo(
+    () => [...boardColumns].sort((a, b) => a.position - b.position),
+    [boardColumns],
+  )
+
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
     description: '',
-    columnId: String(mockColumns[0]?.id ?? 101),
+    columnId: String(sortedColumns[0]?.id ?? 101),
     type: 'frontend',
     priorityId: '3',
     deadline: '',
     assigneeId: '',
   })
-
-  const sortedColumns = useMemo(
-    () => mockColumns.toSorted((a, b) => a.position - b.position),
-    [],
-  )
 
   const resetForm = useCallback(() => {
     setForm({
@@ -109,6 +111,24 @@ function ProjectBoardPage() {
     })
 
     resetForm()
+  }
+
+  if (columnsLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+  
+  if (columnsError) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">
+          Ошибка загрузки колонок: {columnsError.message}
+        </Alert>
+      </Box>
+    )
   }
 
   return (
