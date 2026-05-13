@@ -11,15 +11,15 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   CircularProgress,
   Alert,
   ThemeProvider,
   createTheme,
   Tooltip,
+  Menu,
+  MenuItem,
+  Select,
+  FormControl
 } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
@@ -29,13 +29,13 @@ import BadgeIcon from '@mui/icons-material/Badge'
 import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import { useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useProject } from '../../hooks/useProject'
 import { useBoardColumns } from '../../hooks/useBoardColumn'
 import { useProjectMembers } from '../../hooks/useProjectMembers'
+import { useProjectSpecialties } from '../../hooks/useProjectSpecialties'
 import type { BackgroundType } from '../../types/project'
 import type { BoardColumnUpdate } from '../../types/boardColumn'
-import { useNavigate } from 'react-router-dom'
 import styles from './styles.module.css'
 
 interface EditableColumn {
@@ -61,18 +61,33 @@ function ProjectSettingsPage() {
   
   const { project, loading, error, updateProject, updateColumns } = useProject(projectId)
   const { columns: boardColumns, loading: columnsLoading, refresh: refreshColumns } = useBoardColumns(projectId)
-  const { members, loading: membersLoading } = useProjectMembers(projectId)
+  const { members, loading: membersLoading, removeMember, assignSpecialty } = useProjectMembers(projectId)
+  const { 
+    specialties, 
+    loading: specialtiesLoading, 
+    createSpecialty, 
+    deleteSpecialty,
+    updateSpecialty 
+  } = useProjectSpecialties(projectId)
   
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  
   const [editableColumns, setEditableColumns] = useState<EditableColumn[]>([])
+  const [deleteColumnIndex, setDeleteColumnIndex] = useState<number | null>(null)
+  
+  const [deleteSpecialtyId, setDeleteSpecialtyId] = useState<number | null>(null)
+  
+  const [specialtyMenuAnchor, setSpecialtyMenuAnchor] = useState<null | HTMLElement>(null)
+  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
+  
   const [fontColor, setFontColor] = useState('#000000')
   const [backgroundType, setBackgroundType] = useState<BackgroundType>('default')
   const [backgroundColor, setBackgroundColor] = useState('#ffffff')
   const [gradientColor1, setGradientColor1] = useState('#ffffff')
   const [gradientColor2, setGradientColor2] = useState('#000000')
   const [gradientAngle, setGradientAngle] = useState('90')
-  const [deleteColumnIndex, setDeleteColumnIndex] = useState<number | null>(null)
+  
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
@@ -111,16 +126,13 @@ function ProjectSettingsPage() {
   
   const handleAddColumn = () => {
     const updated = [...editableColumns]
-    
     updated.push({ 
       title: 'Новая колонка', 
       position: updated.length
     })
-    
     updated.forEach((col, i) => {
       col.position = i
     })
-    
     setEditableColumns(updated)
   }
   
@@ -166,24 +178,68 @@ function ProjectSettingsPage() {
     }
   }
   
-  // Заглушки для кнопок участников
+  const handleAddSpecialty = async () => {
+    try {
+      await createSpecialty({
+        name: 'Новая специальность',
+        hex_color: '#1976d2'
+      })
+    } catch (err) {
+      console.error('Ошибка создания специальности:', err)
+    }
+  }
+  
+  const handleSpecialtyNameChange = async (specialtyId: number, newName: string) => {
+    await updateSpecialty(specialtyId, { name: newName })
+  }
+  
+  const handleSpecialtyColorChange = async (specialtyId: number, newColor: string) => {
+    await updateSpecialty(specialtyId, { hex_color: newColor })
+  }
+  
+  const handleDeleteSpecialty = (specialtyId: number) => {
+    setDeleteSpecialtyId(specialtyId)
+  }
+  
+  const confirmDeleteSpecialty = async () => {
+    if (deleteSpecialtyId !== null) {
+      await deleteSpecialty(deleteSpecialtyId)
+      setDeleteSpecialtyId(null)
+    }
+  }
+  
   const handleAddMember = () => {
-    // Заглушка
+    //Реализовать добавление участника
+    console.log('Добавление участника')
   }
   
   const handleMemberRole = (memberId: number) => {
-    // Заглушка
+    //Реализовать назначение роли
+    console.log('Назначение роли участнику', memberId)
   }
   
-  const handleMemberSpecialty = (memberId: number) => {
-    // Заглушка
+  const handleMemberSpecialtyClick = (event: React.MouseEvent<HTMLElement>, memberId: number) => {
+    setSpecialtyMenuAnchor(event.currentTarget)
+    setSelectedMemberId(memberId)
   }
   
-  const handleRemoveMember = (memberId: number) => {
-    // Заглушка
+  const handleMemberSpecialtySelect = async (specialtyId: number | null) => {
+    if (selectedMemberId !== null) {
+      await assignSpecialty(selectedMemberId, specialtyId)
+    }
+    setSpecialtyMenuAnchor(null)
+    setSelectedMemberId(null)
   }
   
-  const truncateUsername = (username: string, maxLength: number = 40) => {
+  const handleRemoveMember = async (memberId: number) => {
+    try {
+      await removeMember(memberId)
+    } catch (err) {
+      console.error('Ошибка удаления участника:', err)
+    }
+  }
+  
+  const truncateUsername = (username: string, maxLength: number = 30) => {
     if (username.length <= maxLength) return username
     return username.substring(0, maxLength).trim() + '...'
   }
@@ -220,14 +276,6 @@ function ProjectSettingsPage() {
         title: col.title,
         position: col.position
       }))
-
-      const positions = columnsData.map(c => c.position)
-      const hasDuplicatePositions = positions.length !== new Set(positions).size
-      
-      if (hasDuplicatePositions) {
-        console.error('Обнаружены дубликаты позиций!', positions)
-        throw new Error('Некорректные позиции колонок')
-      }
       
       await updateColumns(columnsData)
       await refreshColumns()
@@ -243,7 +291,7 @@ function ProjectSettingsPage() {
     }
   }
   
-  if (loading || columnsLoading) {
+  if (loading || columnsLoading || specialtiesLoading) {
     return (
       <Box className={styles.loadingContainer}>
         <CircularProgress />
@@ -364,6 +412,83 @@ function ProjectSettingsPage() {
         <Paper className={styles.section}>
           <Box className={styles.sectionHeader}>
             <Typography variant="h6" className={styles.sectionTitle}>
+              Специальности
+            </Typography>
+            <Button
+              variant="outlined"
+              startIcon={<AddIcon />}
+              onClick={handleAddSpecialty}
+              size="small"
+            >
+              Добавить специальность
+            </Button>
+          </Box>
+          
+          <Box className={styles.columnsList}>
+            {specialties.map((specialty) => (
+              <Box key={specialty.id} className={styles.columnItem}>
+                <Box 
+                  className={styles.specialtyColorIndicator}
+                  sx={{ 
+                    width: 24, 
+                    height: 24, 
+                    borderRadius: '50%',
+                    backgroundColor: specialty.hex_color,
+                    border: '2px solid rgba(0,0,0,0.2)',
+                    flexShrink: 0,
+                    marginRight: 1
+                  }}
+                />
+                
+                <TextField
+                  fullWidth
+                  size="small"
+                  value={specialty.name}
+                  onChange={(e) => handleSpecialtyNameChange(specialty.id, e.target.value)}
+                  variant="outlined"
+                  className={styles.columnTitle}
+                />
+                
+                <Box className={styles.columnActions}>
+                  <input
+                    type="color"
+                    value={specialty.hex_color}
+                    onChange={(e) => handleSpecialtyColorChange(specialty.id, e.target.value)}
+                    style={{
+                      width: 36,
+                      height: 36,
+                      padding: 2,
+                      border: 'none',
+                      borderRadius: 8,
+                      cursor: 'pointer',
+                      background: 'transparent'
+                    }}
+                  />
+                  
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={() => handleDeleteSpecialty(specialty.id)}
+                    className={styles.actionButton}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              </Box>
+            ))}
+            {specialties.length === 0 && (
+              <Box className={styles.emptyMembers}>
+                <Typography variant="body2" color="text.secondary">
+                  Нет специальностей
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Paper>
+        
+        <Paper className={styles.section}>
+          <Box className={styles.sectionHeader}>
+            <Typography variant="h6" className={styles.sectionTitle}>
               Участники
             </Typography>
             <Button
@@ -382,49 +507,78 @@ function ProjectSettingsPage() {
             </Box>
           ) : (
             <Box className={styles.membersList}>
-              {members.map((member) => (
-                <Box key={member.id} className={styles.memberItem}>
-                  <Typography 
-                    className={styles.memberName}
-                    title={member.username}
+              {members.map((member) => {
+                const memberSpecialty = specialties.find(s => s.id === member.specialty_id)
+                
+                return (
+                  <Box 
+                    key={member.id} 
+                    className={styles.memberItem}
+                    sx={{
+                      minHeight: 60,
+                      borderLeft: memberSpecialty 
+                        ? `4px solid ${memberSpecialty.hex_color}` 
+                        : '4px solid transparent',
+                      padding: '12px 16px',
+                    }}
                   >
-                    {truncateUsername(member.username)}
-                  </Typography>
-                  
-                  <Box className={styles.memberActions}>
-                    <Tooltip title="Роль" arrow>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleMemberRole(member.id)}
-                        className={styles.actionButton}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography 
+                        className={styles.memberName}
+                        title={member.username}
                       >
-                        <BadgeIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                        {truncateUsername(member.username)}
+                      </Typography>
+                      {memberSpecialty && (
+                        <Typography 
+                          variant="caption" 
+                          sx={{ 
+                            color: 'text.secondary',
+                            fontSize: '0.75rem',
+                            display: 'block',
+                            mt: 0.25
+                          }}
+                        >
+                          {memberSpecialty.name}
+                        </Typography>
+                      )}
+                    </Box>
                     
-                    <Tooltip title="Специальность" arrow>
-                      <IconButton
-                        size="small"
-                        onClick={() => handleMemberSpecialty(member.id)}
-                        className={styles.actionButton}
-                      >
-                        <WorkOutlineIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    
-                    <Tooltip title="Удалить участника" arrow>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleRemoveMember(member.id)}
-                        className={styles.actionButton}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    <Box className={styles.memberActions}>
+                      <Tooltip title="Роль" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleMemberRole(member.id)}
+                          className={styles.actionButton}
+                        >
+                          <BadgeIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <Tooltip title="Специальность" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => handleMemberSpecialtyClick(e, member.id)}
+                          className={styles.actionButton}
+                        >
+                          <WorkOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      
+                      <Tooltip title="Удалить участника" arrow>
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleRemoveMember(member.id)}
+                          className={styles.actionButton}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
                   </Box>
-                </Box>
-              ))}
+                )
+              })}
               {members.length === 0 && (
                 <Box className={styles.emptyMembers}>
                   <Typography variant="body2" color="text.secondary">
@@ -435,6 +589,37 @@ function ProjectSettingsPage() {
             </Box>
           )}
         </Paper>
+        
+        <Menu
+          anchorEl={specialtyMenuAnchor}
+          open={Boolean(specialtyMenuAnchor)}
+          onClose={() => {
+            setSpecialtyMenuAnchor(null)
+            setSelectedMemberId(null)
+          }}
+        >
+          <MenuItem onClick={() => handleMemberSpecialtySelect(null)}>
+            <Typography color="text.secondary">Без специальности</Typography>
+          </MenuItem>
+          {specialties.map((specialty) => (
+            <MenuItem 
+              key={specialty.id}
+              onClick={() => handleMemberSpecialtySelect(specialty.id)}
+            >
+              <Box 
+                sx={{ 
+                  width: 16, 
+                  height: 16, 
+                  borderRadius: '50%',
+                  backgroundColor: specialty.hex_color,
+                  marginRight: 1,
+                  border: '1px solid rgba(0,0,0,0.2)'
+                }}
+              />
+              {specialty.name}
+            </MenuItem>
+          ))}
+        </Menu>
         
         <Paper className={styles.section}>
           <Typography variant="h6" className={styles.sectionTitle}>
@@ -576,6 +761,24 @@ function ProjectSettingsPage() {
           <DialogActions>
             <Button onClick={() => setDeleteColumnIndex(null)}>Отмена</Button>
             <Button onClick={confirmDeleteColumn} color="error" variant="contained">
+              Удалить
+            </Button>
+          </DialogActions>
+        </Dialog>
+        
+        <Dialog
+          open={deleteSpecialtyId !== null}
+          onClose={() => setDeleteSpecialtyId(null)}
+        >
+          <DialogTitle>Удалить специальность?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Вы уверены, что хотите удалить эту специальность? У участников, которым она назначена, специальность будет сброшена.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setDeleteSpecialtyId(null)}>Отмена</Button>
+            <Button onClick={confirmDeleteSpecialty} color="error" variant="contained">
               Удалить
             </Button>
           </DialogActions>

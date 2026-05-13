@@ -148,3 +148,20 @@ class ProjectService:
 
         await self.db.commit()
         return {"message": f"Роль '{role_name}' назначена"}
+    
+    async def get_members_with_specialties(self, project_id: int, current_user_id: int):
+        """Получить участников со специальностями"""
+        project = await self.project_repo.get_by_id(project_id)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, 
+                detail="Project not found"
+            )
+        
+        if not await self.member_repo.is_member(project_id, current_user_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, 
+                detail="You don't have access to this project"
+            )
+        
+        return await self.project_repo.get_members_with_specialties(project_id)

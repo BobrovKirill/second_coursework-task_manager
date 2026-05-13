@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
-import useApi from '../hooks/useApi'
-import type { UserListItem } from '../types/user'
+import useApi from './useApi'
+import type { MemberWithSpecialty } from '../types/projectSpecialty'
 
 export const useProjectMembers = (projectId: number) => {
-  const [members, setMembers] = useState<UserListItem[]>([])
+  const [members, setMembers] = useState<MemberWithSpecialty[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
   
@@ -12,7 +12,9 @@ export const useProjectMembers = (projectId: number) => {
   const fetchMembers = useCallback(async () => {
     setLoading(true)
     try {
-      const data: UserListItem[] = await api.get(`/projects/${projectId}/members`)
+      const data: MemberWithSpecialty[] = await api.get(
+        `/projects/${projectId}/members-with-specialties`
+      )
       setMembers(data)
     } catch (err) {
       setError(err as Error)
@@ -23,7 +25,9 @@ export const useProjectMembers = (projectId: number) => {
 
   const addMember = useCallback(async (userId: number) => {
     try {
-      const newMember: UserListItem = await api.post(`/projects/${projectId}/members/${userId}`)
+      const newMember: MemberWithSpecialty = await api.post(
+        `/projects/${projectId}/members/${userId}`
+      )
       setMembers(prev => [...prev, newMember])
       return newMember
     } catch (err) {
@@ -40,6 +44,18 @@ export const useProjectMembers = (projectId: number) => {
     }
   }, [projectId])
 
+  const assignSpecialty = useCallback(async (userId: number, specialtyId: number | null) => {
+    try {
+      await api.put(
+        `/projects/${projectId}/members/${userId}/specialty`,
+        { specialty_id: specialtyId }
+      )
+      await fetchMembers()
+    } catch (err) {
+      throw err
+    }
+  }, [projectId, fetchMembers])
+
   useEffect(() => {
     fetchMembers()
   }, [fetchMembers])
@@ -50,6 +66,7 @@ export const useProjectMembers = (projectId: number) => {
     error,
     addMember,
     removeMember,
+    assignSpecialty,
     refresh: fetchMembers
   }
 }

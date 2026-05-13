@@ -4,5 +4,6 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.project_member import ProjectMember, ProjectMemberRole
 from app.models.task import Task
+from app.models.project_specialty import ProjectSpecialty
 
-__all__ = ["User", "Project", "ProjectMember", "Task", "Role", "RolePermission", "Permission", "ProjectMemberRole"]
+__all__ = ["User", "Project", "ProjectMember", "Task", "Role", "RolePermission", "Permission", "ProjectMemberRole", "ProjectSpecialty"]

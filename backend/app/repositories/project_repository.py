@@ -2,7 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_, or_
 from sqlalchemy.orm import selectinload
 from app.models.project import Project
+from app.models.user import User
 from app.models.project_member import ProjectMember
+from app.models.project_specialty import ProjectSpecialty
 from app.schemas.project import ProjectCreate, ProjectUpdate
 from typing import Optional, List
 
@@ -31,7 +33,8 @@ class ProjectRepository:
                 Project.is_active == True
             ))
             .options(
-                selectinload(Project.members).selectinload(ProjectMember.member)
+                selectinload(Project.members).selectinload(ProjectMember.member),
+                selectinload(Project.members).selectinload(ProjectMember.specialty)
             )
         )
         result = await self.db.execute(stmt)
@@ -99,3 +102,33 @@ class ProjectRepository:
         project.is_active = False
         await self.db.commit()
         return True
+    
+    async def get_members_with_specialties(self, project_id: int):
+        """Получить участников проекта с информацией о специальностях"""
+        stmt = (
+            select(
+                User.id,
+                User.username,
+                User.email,
+                ProjectMember.specialty_id,
+                ProjectSpecialty.name.label('specialty_name'),
+                ProjectSpecialty.hex_color.label('specialty_hex_color')
+            )
+            .join(ProjectMember, User.id == ProjectMember.user_id)
+            .outerjoin(ProjectSpecialty, ProjectMember.specialty_id == ProjectSpecialty.id)
+            .where(ProjectMember.project_id == project_id)
+        )
+        result = await self.db.execute(stmt)
+        rows = result.all()
+        
+        return [
+            {
+                "id": row.id,
+                "username": row.username,
+                "email": row.email,
+                "specialty_id": row.specialty_id,
+                "specialty_name": row.specialty_name,
+                "specialty_hex_color": row.specialty_hex_color
+            }
+            for row in rows
+        ]

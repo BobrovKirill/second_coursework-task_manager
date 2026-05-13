@@ -12,7 +12,9 @@ from app.schemas.project_member import MemberRoleAssign
 from app.services.board_column_service import BoardColumnService
 from app.schemas.board_column import BoardColumnRead
 from app.schemas.board_column import BoardColumnUpdate
-
+from app.services.project_specialty_service import ProjectSpecialtyService
+from app.schemas.project_specialty import ProjectSpecialtyCreate, ProjectSpecialtyRead, ProjectSpecialtyUpdate, MemberSpecialtyAssign
+from app.schemas.project_member import ProjectMemberWithSpecialty
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -21,6 +23,9 @@ async def get_project_service(db: AsyncSession = Depends(get_db)):
 
 async def get_column_service(db: AsyncSession = Depends(get_db)):
     return BoardColumnService(db)
+
+async def get_specialty_service(db: AsyncSession = Depends(get_db)):
+    return ProjectSpecialtyService(db)
 
 @router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project(
@@ -173,3 +178,66 @@ async def update_project_columns_batch(
     
     await db.commit()
     return updated_columns
+
+
+@router.get("/{project_id}/specialties", response_model=List[ProjectSpecialtyRead])
+async def get_project_specialties(
+    project_id: int,
+    service: ProjectSpecialtyService = Depends(get_specialty_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить специальности проекта"""
+    return await service.get_project_specialties(project_id, current_user.id)
+
+@router.post("/{project_id}/specialties", response_model=ProjectSpecialtyRead, status_code=status.HTTP_201_CREATED)
+async def create_project_specialty(
+    project_id: int,
+    data: ProjectSpecialtyCreate,
+    service: ProjectSpecialtyService = Depends(get_specialty_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Создать специальность в проекте"""
+    return await service.create_specialty(project_id, data, current_user.id)
+
+@router.put("/{project_id}/specialties/{specialty_id}", response_model=ProjectSpecialtyRead)
+async def update_project_specialty(
+    project_id: int,
+    specialty_id: int,
+    data: ProjectSpecialtyUpdate,
+    service: ProjectSpecialtyService = Depends(get_specialty_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Обновить специальность"""
+    return await service.update_specialty(specialty_id, project_id, data, current_user.id)
+
+@router.delete("/{project_id}/specialties/{specialty_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project_specialty(
+    project_id: int,
+    specialty_id: int,
+    service: ProjectSpecialtyService = Depends(get_specialty_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Удалить специальность"""
+    await service.delete_specialty(specialty_id, project_id, current_user.id)
+
+@router.put("/{project_id}/members/{user_id}/specialty", response_model=dict)
+async def assign_member_specialty(
+    project_id: int,
+    user_id: int,
+    data: MemberSpecialtyAssign,
+    service: ProjectSpecialtyService = Depends(get_specialty_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Назначить специальность участнику"""
+    return await service.assign_specialty(
+        project_id, user_id, data.specialty_id, current_user.id
+    )
+
+@router.get("/{project_id}/members-with-specialties", response_model=List[ProjectMemberWithSpecialty])
+async def get_members_with_specialties(
+    project_id: int,
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить участников проекта со специальностями"""
+    return await service.get_members_with_specialties(project_id, current_user.id)
