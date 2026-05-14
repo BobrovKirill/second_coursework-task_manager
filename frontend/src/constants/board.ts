@@ -1,7 +1,7 @@
 import type { TaskStatus } from '../types/task'
 
 export interface BoardColumn {
-  status: TaskStatus
+  status?: TaskStatus
   title: string
   position: number
 }
