@@ -6,7 +6,7 @@ export interface BoardColumn {
   position: number
 }
 
-export const BOARD_COLUMNS: BoardColumn[] = [
+export const BOARD_COLUMNS: Array<BoardColumn & { status: TaskStatus }> = [
   { status: 'todo', title: 'Сделать', position: 1 },
   { status: 'in_progress', title: 'Делается', position: 2 },
   { status: 'done', title: 'Сделано', position: 3 },

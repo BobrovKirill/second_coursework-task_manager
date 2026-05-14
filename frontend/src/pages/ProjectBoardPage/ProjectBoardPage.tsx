@@ -38,7 +38,6 @@ function ProjectBoardPage() {
     () =>
       [...boardColumns]
         .sort((a, b) => a.position - b.position)
-        .slice(0, TASK_STATUSES.length)
         .map((column, index) => ({
           ...column,
           status: TASK_STATUSES[index],
@@ -83,7 +82,9 @@ function ProjectBoardPage() {
   return (
     <Box className={styles.board}>
       {columnsWithStatuses.map((column) => {
-        const columnTasks = tasks.filter(task => task.status === column.status)
+        const columnTasks = column.status === undefined
+          ? []
+          : tasks.filter(task => task.status === column.status)
 
         return (
           <BoardColumn
