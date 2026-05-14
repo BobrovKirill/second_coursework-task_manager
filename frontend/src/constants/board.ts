@@ -7,8 +7,7 @@ export interface BoardColumn {
 }
 
 export const BOARD_COLUMNS: BoardColumn[] = [
-  { status: 'backlog', title: 'Backlog', position: 1 },
-  { status: 'todo', title: 'To Do', position: 2 },
-  { status: 'in_progress', title: 'In Progress', position: 3 },
-  { status: 'done', title: 'Done', position: 4 },
+  { status: 'todo', title: 'Сделать', position: 1 },
+  { status: 'in_progress', title: 'Делается', position: 2 },
+  { status: 'done', title: 'Сделано', position: 3 },
 ]

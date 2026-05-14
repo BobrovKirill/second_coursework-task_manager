@@ -31,7 +31,7 @@ function EditTaskPage() {
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
     description: '',
-    status: 'backlog',
+    status: 'todo',
     taskType: '',
     priority: '3',
     deadline: '',
@@ -68,7 +68,7 @@ function EditTaskPage() {
         setForm({
           title: task.title,
           description: task.description ?? '',
-          status: task.status,
+          status: task.status === 'backlog' ? 'todo' : task.status,
           taskType: task.taskType ?? '',
           priority: String(task.priority),
           deadline: task.deadline?.slice(0, 10) ?? '',

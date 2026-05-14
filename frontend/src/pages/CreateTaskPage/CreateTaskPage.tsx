@@ -27,7 +27,7 @@ function CreateTaskPage() {
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
     description: '',
-    status: 'backlog',
+    status: 'todo',
     taskType: 'frontend',
     priority: '3',
     deadline: '',

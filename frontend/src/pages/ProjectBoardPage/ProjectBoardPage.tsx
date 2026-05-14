@@ -7,7 +7,7 @@ import { useProjectMembers } from '../../hooks/useProjectMembers'
 import { useTasks } from '../../hooks/useTasks'
 import styles from './style.module.css'
 
-const TASK_STATUSES = ['backlog', 'todo', 'in_progress', 'done'] as const
+const TASK_STATUSES = ['todo', 'in_progress', 'done'] as const
 
 function ProjectBoardPage() {
   const { id, projectId } = useParams()
@@ -18,7 +18,7 @@ function ProjectBoardPage() {
   const { tasks, loading, error, deleteTask } = useTasks(
     hasInvalidProjectId ? null : currentProjectId,
   )
-  
+
   const {
     columns: boardColumns,
     loading: columnsLoading,
@@ -38,9 +38,10 @@ function ProjectBoardPage() {
     () =>
       [...boardColumns]
         .sort((a, b) => a.position - b.position)
+        .slice(0, TASK_STATUSES.length)
         .map((column, index) => ({
           ...column,
-          status: TASK_STATUSES[index] ?? 'backlog',
+          status: TASK_STATUSES[index],
         })),
     [boardColumns],
   )
