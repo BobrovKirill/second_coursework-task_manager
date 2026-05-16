@@ -1,12 +1,13 @@
 import type { FormEvent } from 'react'
 import type { TaskFormValues } from '../../components/TaskForm'
 import { Container, Typography } from '@mui/material'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import TaskForm from '../../components/TaskForm'
-import { BOARD_COLUMNS } from '../../constants/board'
+import { getTaskColumns } from '../../constants/board'
 import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
+import { useBoardColumns } from '../../hooks/useBoardColumn'
 import { useProjectMembers } from '../../hooks/useProjectMembers'
 
 function CreateTaskPage() {
@@ -18,6 +19,12 @@ function CreateTaskPage() {
   const hasInvalidProjectId = currentProjectId === null || Number.isNaN(currentProjectId)
 
   const { members } = useProjectMembers(currentProjectId)
+
+  const { columns: boardColumns } = useBoardColumns(currentProjectId)
+  const taskColumns = useMemo(
+    () => getTaskColumns(boardColumns),
+    [boardColumns],
+  )
 
   const taskFormMembers = members.map(member => ({
     id: member.id,
@@ -116,7 +123,7 @@ function CreateTaskPage() {
         title="Создать задачу"
         description={error ?? 'Заполните поля и сохраните новую задачу.'}
         values={form}
-        columns={BOARD_COLUMNS}
+        columns={taskColumns}
         members={taskFormMembers}
         onChange={handleFormChange}
         onSubmit={handleSubmit}

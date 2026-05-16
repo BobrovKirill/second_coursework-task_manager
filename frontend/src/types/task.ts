@@ -1,4 +1,4 @@
-export type TaskStatus = 'backlog' | 'todo' | 'in_progress' | 'done'
+export type TaskStatus = string
 
 export type TaskType = 'frontend' | 'backend' | 'design' | 'research'
 
