@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update as sql_update, delete as sql_delete
 from app.models.board_column import BoardColumn
@@ -28,7 +30,7 @@ class BoardColumnRepository:
         await self.db.refresh(column)
         return column
     
-    async def update(self, column_id: int, data: BoardColumnUpdate) -> BoardColumn | None:
+    async def update(self, column_id: int, data: BoardColumnUpdate) -> Optional[BoardColumn]:
         """Обновить колонку"""
         stmt = (
             sql_update(BoardColumn)
