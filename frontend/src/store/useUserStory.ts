@@ -35,9 +35,11 @@ export const useUserStore = create<UserState>((set, get) => {
 
     updateUser: async (data: Partial<User>) => {
       set({ loading: true, error: null })
+      const projectId = get().getLastProjectId()
+      const projectQuery = projectId !== null ? `?project_id=${projectId}` : ''
 
       try {
-        const updated: User = await api.patch(endpoint, data)
+        const updated: User = await api.patch(`${endpoint}${projectQuery}`, data)
         set({ user: updated })
         return updated
       }

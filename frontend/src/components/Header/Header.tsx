@@ -10,13 +10,12 @@ import {
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
-import { Link as RouterLink, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import Logo from '../../assets/react.svg?react'
 import { ROUTES } from '../../constants/routes.ts'
+import { useUserStore } from '../../store/useUserStory'
 import liquidGlass from '../../styles/liquidGlass.module.css'
 import HeaderNav from '../HeaderNav'
-import { useUserStore } from '../../store/useUserStory'
-import { useParams } from 'react-router-dom'
 import styles from './style.module.css'
 
 function Header() {
@@ -30,20 +29,20 @@ function Header() {
   }
 
   const handleSettingsClick = () => {
-    if (!lastProjectId) return
-    
+    if (!lastProjectId)
+      return
+
     const currentPath = window.location.pathname
     const settingsPath = ROUTES.PROJECT_SETTINGS(lastProjectId)
     const boardPath = ROUTES.PROJECT_BOARD(lastProjectId)
-    
+
     if (currentPath === settingsPath) {
       navigate(boardPath)
-    } else {
+    }
+    else {
       navigate(settingsPath)
     }
   }
-
-  const isProjectOpen = Boolean(id == lastProjectId?.toString())
 
   return (
     <>
@@ -100,14 +99,10 @@ function Header() {
               Профиль
             </Button>
 
-            <IconButton 
-              color="inherit" 
+            <IconButton
+              color="inherit"
               aria-label="settings"
               onClick={handleSettingsClick}
-              disabled={!isProjectOpen}
-              sx={{
-                opacity: isProjectOpen ? 1 : 0.4,
-              }}
             >
               <Settings />
             </IconButton>
