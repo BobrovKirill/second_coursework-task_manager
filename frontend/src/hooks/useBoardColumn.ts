@@ -1,38 +1,51 @@
-import { useState, useEffect, useCallback } from 'react'
-import useApi from './useApi'
 import type { BoardColumn } from '../types/boardColumn'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import useApi from './useApi'
 
-export const useBoardColumns = (projectId: number) => {
+function normalizeColumns(data: unknown): BoardColumn[] {
+  if (!Array.isArray(data)) {
+    return []
+  }
+
+  return data as BoardColumn[]
+}
+
+export function useBoardColumns(projectId: number | null) {
+  const apiRef = useRef(useApi())
   const [columns, setColumns] = useState<BoardColumn[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  
-  const api = useApi()
 
   const fetchColumns = useCallback(async () => {
-    if (!projectId) return
-    
+    if (projectId === null || Number.isNaN(projectId)) {
+      setColumns([])
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     setError(null)
-    
+
     try {
-      const data: BoardColumn[] = await api.get(`/projects/${projectId}/columns`)
-      setColumns(data)
-    } catch (err) {
+      const data: unknown = await apiRef.current.get(`/projects/${projectId}/columns`)
+      setColumns(normalizeColumns(data))
+    }
+    catch (err) {
       setError(err as Error)
-    } finally {
+    }
+    finally {
       setLoading(false)
     }
   }, [projectId])
 
   useEffect(() => {
-    fetchColumns()
+    void fetchColumns()
   }, [fetchColumns])
 
   return {
     columns,
     loading,
     error,
-    refresh: fetchColumns
+    refresh: fetchColumns,
   }
 }

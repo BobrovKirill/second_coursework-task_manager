@@ -1,20 +1,29 @@
-export { default } from "./TaskCard";
+import type { Task } from '../../types/task'
 
-import type { BoardColumn, Member, Task } from '../../mocks/boardMock';
+export interface TaskCardMember {
+  id: number
+  name: string
+}
+
+export interface TaskCardProps {
+  task: Task
+  members?: TaskCardMember[]
+  onDeleteTask?: (taskId: number) => void | Promise<void>
+}
 
 export const PRIORITY_MAP: Record<number, string> = {
-  1: "Минимальный",
-  2: "Низкий",
-  3: "Средний",
-  4: "Высокий",
-  5: "Критический",
-};
+  1: 'Минимальный',
+  2: 'Низкий',
+  3: 'Средний',
+  4: 'Высокий',
+  5: 'Критический',
+}
 
-export type TaskCardProps = {
-  task: Task;
-  members: Member[];
-  columns: BoardColumn[];
-  onChangeTaskColumn: (taskId: number, newColumnId: number) => void;
-  onEditTask: (task: Task) => void;
-  onDeleteTask: (taskId: number) => void;
-};
+export const TASK_TYPE_LABELS: Record<string, string> = {
+  frontend: 'Фронтенд',
+  backend: 'Бэкенд',
+  design: 'Дизайн',
+  research: 'Исследование',
+}
+
+export { default } from './TaskCard'

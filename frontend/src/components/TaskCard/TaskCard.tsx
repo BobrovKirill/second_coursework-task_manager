@@ -1,28 +1,56 @@
 import type { TaskCardProps } from './index'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
-import { Card, CardContent, Chip, IconButton, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Button, Card, CardContent, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { TASK_TYPE_LABELS } from '../../mocks/boardMock'
-import { PRIORITY_MAP } from './index'
+import { PRIORITY_MAP, TASK_TYPE_LABELS } from './index'
 import styles from './style.module.css'
 
-function TaskCard({ task, members, columns, onChangeTaskColumn, onDeleteTask }: TaskCardProps) {
-  const { projectId } = useParams()
+function TaskCard({ task, members = [], onDeleteTask }: TaskCardProps) {
+  const { id } = useParams()
   const navigate = useNavigate()
-  const taskMembers = members.filter(member => task.assigneeIds.includes(member.id))
 
-  function onEditTask(id) {
-    navigate(`/projects/${projectId}/tasks/${id}`)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  function handleOpenTask() {
+    if (id === undefined || id.trim() === '') {
+      return
+    }
+
+    void navigate(`/projects/${id}/tasks/${task.id}`)
   }
+
+  function handleOpenDeleteDialog() {
+    setIsDeleteDialogOpen(true)
+  }
+
+  function handleCloseDeleteDialog() {
+    setIsDeleteDialogOpen(false)
+  }
+
+  function handleConfirmDeleteTask() {
+    if (onDeleteTask === undefined) {
+      return
+    }
+
+    setIsDeleteDialogOpen(false)
+    void onDeleteTask(task.id)
+  }
+
+  const taskTypeLabel = task.taskType !== null
+    ? TASK_TYPE_LABELS[task.taskType] ?? task.taskType
+    : '—'
+
+  const assigneeName = task.assigneeId !== null
+    ? members.find(member => member.id === task.assigneeId)?.name ?? `#${task.assigneeId}`
+    : '—'
 
   return (
     <Card variant="outlined" className={styles.card}>
       <CardContent className={styles.content}>
-
         <Typography
           variant="subtitle2"
-          sx={{ fontWeight: 600 }}
           className={styles.title}
         >
           {task.title}
@@ -33,19 +61,24 @@ function TaskCard({ task, members, columns, onChangeTaskColumn, onDeleteTask }: 
           color="text.secondary"
           className={styles.description}
         >
-          {task.description || '—'}
+          {task.description ?? '—'}
         </Typography>
 
         <Stack direction="row" spacing={1} className={styles.meta}>
           <Chip
             size="small"
-            label={`Тип: ${TASK_TYPE_LABELS[task.type]}`}
+            label={`Тип: ${taskTypeLabel}`}
           />
+
           <Chip
             size="small"
-            label={`Приоритет: ${PRIORITY_MAP[task.priorityId] ?? task.priorityId}`}
+            label={`Приоритет: ${PRIORITY_MAP[task.priority] ?? task.priority}`}
           />
-          <Chip size="small" label={`Дедлайн: ${task.deadline ?? '—'}`} />
+
+          <Chip
+            size="small"
+            label={`Дедлайн: ${task.deadline ?? '—'}`}
+          />
         </Stack>
 
         <Stack
@@ -55,18 +88,16 @@ function TaskCard({ task, members, columns, onChangeTaskColumn, onDeleteTask }: 
           className={styles.footer}
         >
           <Typography variant="caption">
-            Исполнители:
+            Исполнитель:
             {' '}
-            {taskMembers.length
-              ? taskMembers.map(member => member.name).join(', ')
-              : '—'}
+            {assigneeName}
           </Typography>
 
           <Stack direction="row" spacing={0.5}>
             <IconButton
               size="small"
               className={styles.iconButton}
-              onClick={() => onEditTask(task.id)}
+              onClick={handleOpenTask}
             >
               <EditOutlinedIcon fontSize="small" />
             </IconButton>
@@ -75,29 +106,42 @@ function TaskCard({ task, members, columns, onChangeTaskColumn, onDeleteTask }: 
               size="small"
               color="error"
               className={styles.iconButton}
-              onClick={() => onDeleteTask(task.id)}
+              onClick={handleOpenDeleteDialog}
             >
               <DeleteOutlineIcon fontSize="small" />
             </IconButton>
           </Stack>
         </Stack>
-
-        <TextField
-          select
-          label="Статус"
-          size="small"
-          fullWidth
-          value={String(task.columnId)}
-          onChange={e => onChangeTaskColumn(task.id, Number(e.target.value))}
-          className={styles.selectField}
-        >
-          {columns.map(column => (
-            <MenuItem key={column.id} value={String(column.id)}>
-              {column.title}
-            </MenuItem>
-          ))}
-        </TextField>
       </CardContent>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+      >
+        <DialogTitle>
+          Удалить задачу?
+        </DialogTitle>
+
+        <DialogContent>
+          <DialogContentText>
+            Задача будет удалена из проекта. Это действие нельзя будет отменить.
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={handleCloseDeleteDialog}>
+            Отмена
+          </Button>
+
+          <Button
+            color="error"
+            variant="contained"
+            onClick={handleConfirmDeleteTask}
+          >
+            Удалить
+          </Button>
+        </DialogActions>
+      </Dialog>
+
     </Card>
   )
 }
