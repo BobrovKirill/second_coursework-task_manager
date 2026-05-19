@@ -1,5 +1,4 @@
-import type { EmployeeType, User } from '../../types/user.ts'
-import AnnouncementIcon from '@mui/icons-material/Announcement'
+import type { User } from '../../types/user.ts'
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera'
 import {
   Avatar,
@@ -7,23 +6,18 @@ import {
   Button,
   CircularProgress,
   IconButton,
-  InputAdornment,
-  MenuItem,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { useAlertModal } from '../../components/AlertModal'
-import { EMPLOYEE_TYPES, useUserStore } from '../../store/useUserStory'
+import { useUserStore } from '../../store/useUserStory'
 import base from '../../styles/formBase.module.css'
 import liquidGlass from '../../styles/liquidGlass.module.css'
-import { getDescriptionRole } from '../../utils/roles.ts'
-import { EMPLOYEE_TYPE_LABELS } from './index.ts'
 import styles from './style.module.css'
 
 function ProfileUser() {
-  const { user, loading, updateUser, uploadAvatar, getRole } = useUserStore()
+  const { user, loading, updateUser, uploadAvatar } = useUserStore()
   const { showAlertModal } = useAlertModal()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -32,8 +26,6 @@ function ProfileUser() {
     lastName: '',
     patronymic: '',
     birthDate: '',
-    position: '',
-    employeeType: '' as EmployeeType | '',
     email: '',
   })
 
@@ -47,8 +39,6 @@ function ProfileUser() {
       lastName: user.lastName ?? '',
       patronymic: user.patronymic ?? '',
       birthDate: user.birthDate ?? '',
-      position: user.position ?? '',
-      employeeType: user.employeeType ?? '',
       email: user.email ?? '',
     })
     setAvatarPreview(user.avatar ?? null)
@@ -83,8 +73,6 @@ function ProfileUser() {
       showAlertModal({ title: 'Ошибка', message: 'Не удалось сохранить профиль' })
     }
   }
-
-  const currentRole = getDescriptionRole(getRole())
   const initials = [form.firstName?.[0], form.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?'
   const fullName = [form.lastName, form.firstName, form.patronymic].filter(Boolean).join(' ') || 'Имя не указано'
 
@@ -124,47 +112,7 @@ function ProfileUser() {
         <TextField label="Фамилия" value={form.lastName} onChange={setField('lastName')} fullWidth className={base.field} />
         <TextField label="Отчество" value={form.patronymic} onChange={setField('patronymic')} fullWidth className={base.field} />
         <TextField label="Дата рождения" type="date" value={form.birthDate} onChange={setField('birthDate')} fullWidth className={base.field} InputLabelProps={{ shrink: true }} />
-        <TextField label="Должность" value={form.position} onChange={setField('position')} fullWidth className={base.field} />
-        <TextField select label="Тип сотрудника" value={form.employeeType} onChange={setField('employeeType')} fullWidth className={base.field}>
-          {EMPLOYEE_TYPES.map(type => (
-            <MenuItem key={type} value={type}>{EMPLOYEE_TYPE_LABELS[type]}</MenuItem>
-          ))}
-        </TextField>
         <TextField label="Email" value={form.email} fullWidth className={`${base.field} ${styles.fullWidth}`} InputProps={{ readOnly: true }} />
-
-        {currentRole.title && currentRole.descriptionList.length && (
-          <TextField
-            label="Роль и права"
-            value={currentRole.title}
-            fullWidth
-            className={`${base.field} ${styles.fullWidth}`}
-            InputProps={{
-              readOnly: true,
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Tooltip
-                    title={(
-                      <>
-                        <div>Права пользователя:</div>
-                        <ol style={{ paddingLeft: '20px', margin: '6px 0 0 0' }}>
-                          {currentRole.descriptionList.map((item, index) => (
-                            <li key={index}>{item}</li>
-                          ))}
-                        </ol>
-                      </>
-                    )}
-                    arrow
-                    placement="top"
-                  >
-                    <IconButton edge="end" size="small" sx={{ color: 'text.secondary' }}>
-                      <AnnouncementIcon />
-                    </IconButton>
-                  </Tooltip>
-                </InputAdornment>
-              ),
-            }}
-          />
-        )}
       </div>
 
       <div className={styles.actions}>

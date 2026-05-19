@@ -9,26 +9,43 @@
 .projectList {
     display: flex;
     flex-direction: column;
+    gap: 12px;
+
 
     width: 100%;
 }
 
 .projectItem {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 12px;
+
+    padding: 8px 10px 16px;
+
+    border-radius: 8px;
+    border: 2px solid #312f2f;
+    cursor: pointer;
 }
 
-.projectItem:nth-child(even) {
-    background-color: rgba(115, 115, 115, 0.2);
+.projectItemActive {
+    border: 2px solid #2563eb;
+}
+
+.projectItemFields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    grid-column: span 2;
+    grid-row: 2 / 3;
 }
 
 .mainButton {
-    color: #312f2f;
+    color: black;
+    font-size: 18px;
     flex: 1;
 }
 
-.buttonActive {
-    color: black;
-}
 
 .actions {
     display: flex;
@@ -37,4 +54,9 @@
 
 .iconButton {
     width: auto;
+}
+
+.color {
+    width: 20px;
+    height: 20px;
 }

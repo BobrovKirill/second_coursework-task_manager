@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from app.repositories.project_specialty_repository import ProjectSpecialtyRepository
@@ -86,7 +88,7 @@ class ProjectSpecialtyService:
     
     async def assign_specialty(
         self, project_id: int, user_id: int, 
-        specialty_id: int | None, current_user_id: int
+        specialty_id: Optional[int], current_user_id: int
     ):
         """Назначить специальность участнику"""
         if not await self.member_repo.is_member(project_id, current_user_id):

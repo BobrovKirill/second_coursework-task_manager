@@ -1,41 +1,86 @@
 import type { ProjectListItem } from '../../types/project.ts'
+import type { MemberWithSpecialty } from '../../types/projectSpecialty.ts'
 import type { ProjectListProps } from './index.ts'
+import AnnouncementIcon from '@mui/icons-material/Announcement'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
-import { CircularProgress, List, ListItemButton, ListItemIcon, ListItemText, Typography } from '@mui/material'
-import { useEffect } from 'react'
+import {
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useApi from '../../hooks/useApi.ts'
 import { useProjectStore } from '../../store/useProjectsStory.ts'
 import { useUserStore } from '../../store/useUserStory.ts'
+import base from '../../styles/formBase.module.css'
+import { getDescriptionRole } from '../../utils/roles.ts'
 import styles from './style.module.css'
 
 function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
   const { projects, loading, fetchProjects } = useProjectStore()
-  const { setLastProjectId, getLastProjectId } = useUserStore()
+  const { setLastProjectId, getLastProjectId, user } = useUserStore()
   const navigate = useNavigate()
   const Icon = icon
+  const { getRole } = useUserStore()
+  const api = useApi()
+  const [specialties, setSpecialties] = useState<Record<number, any>>({})
 
   useEffect(() => {
-
-  }, [])
-  useEffect(() => {
-    if (projects.length === 0) {
-      void fetchProjects()
+    async function init() {
+      if (projects.length === 0) {
+        await fetchProjects()
+      }
     }
+
+    void init()
   }, [])
 
-  function handleProjectClick(project: ProjectListItem) {
+  useEffect(() => {
+    async function loadSpecialties() {
+      const result: Record<number, any> = {}
+      for (const project of projects) {
+        try {
+          const data: MemberWithSpecialty[] = await api.get(`/projects/${project.id}/members-with-specialties`)
+          const userSpecialty = data?.find((specialty: MemberWithSpecialty) => specialty.id === user?.id)
+          if (userSpecialty)
+            result[project.id] = userSpecialty
+        }
+        catch (e) {
+          console.error(e)
+        }
+      }
+      setSpecialties(result)
+    }
+    if (projects.length > 0)
+      void loadSpecialties()
+  }, [projects])
+
+  async function handleProjectClick(event: Event, project: ProjectListItem) {
+    event.stopPropagation()
     setLastProjectId(project.id)
-    navigate(`/projects/${project.id}`)
+    await navigate(`/projects/${project.id}`)
   }
 
-  function handleProjectEditClick(project: ProjectListItem) {
-    navigate(`/projects/${project.id}`)
+  async function handleProjectEditClick(event: Event, project: ProjectListItem) {
+    event.stopPropagation()
+    await navigate(`/projects/${project.id}/settings`)
   }
 
-  function handleDelete(project: ProjectListItem) {
+  function handleDelete(event: Event, project: ProjectListItem) {
+    event.stopPropagation()
     console.log(project)
   }
+
+  const currentRole = getDescriptionRole(getRole())
 
   return (
     <div className={styles.projects}>
@@ -46,9 +91,10 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
               <List className={styles.projectList} disablePadding>
                 {projects.map((project) => {
                   const isActive = getLastProjectId() === project.id
+                  const userSpecialty = specialties[project.id]
 
                   return (
-                    <li className={styles.projectItem} key={project.id}>
+                    <li className={`${styles.projectItem} ${isActive ? styles.projectItemActive : ''}`} key={project.id} onClick={async event => handleProjectClick(event, project)}>
                       { Icon
                         ? (
                             <ListItemIcon sx={{ minWidth: 40 }}>
@@ -57,20 +103,13 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                           )
                         : null}
 
-                      <ListItemButton
-                        selected={isActive}
-                        className={`${styles.mainButton} ${isActive ? styles.buttonActive : ''}`}
-                        onClick={() => handleProjectClick(project)}
-                      >
-                        <ListItemText primary={project.name} />
-                      </ListItemButton>
+                      <ListItemText className={`${styles.mainButton}`} primary={project.name} />
 
                       {editMode && (
                         <div className={styles.actions}>
                           <ListItemButton
-                            selected={isActive}
                             className={styles.iconButton}
-                            onClick={() => handleProjectEditClick(project)}
+                            onClick={async event => handleProjectEditClick(event, project)}
                           >
                             <ListItemIcon sx={{ minWidth: 'auto' }}>
                               <EditIcon />
@@ -78,9 +117,8 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                           </ListItemButton>
 
                           <ListItemButton
-                            selected={isActive}
                             className={styles.iconButton}
-                            onClick={() => handleDelete(project)}
+                            onClick={event => handleDelete(event, project)}
                           >
                             <ListItemIcon sx={{ minWidth: 'auto' }}>
                               <DeleteIcon />
@@ -88,6 +126,57 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                           </ListItemButton>
                         </div>
                       )}
+
+                      <div className={styles.projectItemFields}>
+                        {currentRole.title && currentRole.descriptionList.length && (
+                          <TextField
+                            label="Роль и права на проекте"
+                            value={currentRole.title}
+                            fullWidth
+                            className={`${base.field} ${styles.fullWidth}`}
+                            InputProps={{
+                              readOnly: true,
+                              endAdornment: (
+                                <InputAdornment position="end">
+                                  <Tooltip
+                                    title={(
+                                      <>
+                                        <div>Права пользователя:</div>
+                                        <ol style={{ paddingLeft: '20px', margin: '6px 0 0 0' }}>
+                                          {currentRole.descriptionList.map((item, index) => (
+                                            <li key={index}>{item}</li>
+                                          ))}
+                                        </ol>
+                                      </>
+                                    )}
+                                    arrow
+                                    placement="top"
+                                  >
+                                    <IconButton edge="end" size="small" sx={{ color: 'text.secondary' }}>
+                                      <AnnouncementIcon />
+                                    </IconButton>
+                                  </Tooltip>
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        )}
+
+                        {userSpecialty && (
+                          <TextField
+                            label="Должность на проекте"
+                            value={userSpecialty.specialty_name || 'отсутсвует'}
+                            fullWidth
+                            className={`${base.field} ${styles.fullWidth}`}
+                            InputProps={{
+                              readOnly: true,
+                              endAdornment: (
+                                <div className={styles.color} style={{ backgroundColor: userSpecialty.specialty_hex_color }} />
+                              ),
+                            }}
+                          />
+                        )}
+                      </div>
                     </li>
                   )
                 },
