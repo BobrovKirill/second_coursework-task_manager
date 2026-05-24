@@ -14,11 +14,13 @@ import { useAlertModal } from '../../components/AlertModal'
 import { useUserStore } from '../../store/useUserStory'
 import base from '../../styles/formBase.module.css'
 import liquidGlass from '../../styles/liquidGlass.module.css'
+import { getDescriptionRole } from '../../utils/roles.ts'
 import styles from './style.module.css'
 
 function ProfileUser() {
   const { user, loading, updateUser, uploadAvatar } = useUserStore()
   const { showAlertModal } = useAlertModal()
+  const { getRole } = useUserStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [form, setForm] = useState({
@@ -29,7 +31,7 @@ function ProfileUser() {
     email: '',
   })
 
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatar, setAvatar] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user)
@@ -41,8 +43,10 @@ function ProfileUser() {
       birthDate: user.birthDate ?? '',
       email: user.email ?? '',
     })
-    setAvatarPreview(user.avatar ?? null)
+    setAvatar(user.avatar ?? null)
   }, [user])
+
+  const currentRole = getDescriptionRole(getRole())
 
   function setField(field: keyof typeof form) {
     return (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -51,28 +55,32 @@ function ProfileUser() {
 
   async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file)
+    if (!file) {
       return
-    setAvatarPreview(URL.createObjectURL(file))
+    }
+
+    setAvatar(URL.createObjectURL(file))
+
     try {
-      await uploadAvatar(file)
-      showAlertModal({ title: 'Готово', message: 'Аватар обновлён', type: 'success' })
+      const url = await uploadAvatar(file)
+      setAvatar(url)
     }
     catch {
       showAlertModal({ title: 'Ошибка', message: 'Не удалось загрузить аватар' })
-      setAvatarPreview(user?.avatar ?? null)
+      setAvatar(user?.avatar ?? null)
     }
   }
 
   async function handleSave() {
     try {
-      await updateUser(form as Partial<User>)
+      await updateUser({ ...form, avatar } as Partial<User>)
       showAlertModal({ title: 'Сохранено', message: 'Профиль обновлён', type: 'success' })
     }
     catch {
       showAlertModal({ title: 'Ошибка', message: 'Не удалось сохранить профиль' })
     }
   }
+
   const initials = [form.firstName?.[0], form.lastName?.[0]].filter(Boolean).join('').toUpperCase() || '?'
   const fullName = [form.lastName, form.firstName, form.patronymic].filter(Boolean).join(' ') || 'Имя не указано'
 
@@ -91,10 +99,10 @@ function ProfileUser() {
       <div className={styles.avatar}>
         <div className={styles.avatarWrapper}>
           <Avatar
-            src={avatarPreview ?? undefined}
+            src={avatar ?? undefined}
             sx={{ width: 80, height: 80, fontSize: '1.75rem', bgcolor: 'rgba(0,120,255,0.12)', color: 'rgba(0,120,255,0.8)' }}
           >
-            {!avatarPreview && initials}
+            {!avatar && initials}
           </Avatar>
           <IconButton className={styles.avatarButton} onClick={() => fileInputRef.current?.click()} size="small">
             <PhotoCameraIcon fontSize="small" />
@@ -103,7 +111,7 @@ function ProfileUser() {
         </div>
         <Box>
           <Typography variant="subtitle1" fontWeight={600}>{fullName}</Typography>
-          <Typography variant="body2" color="text.secondary">{form.position || 'Должность не указана'}</Typography>
+          <Typography variant="body2" color="text.secondary">{currentRole.title || 'Должность не указана'}</Typography>
         </Box>
       </div>
 

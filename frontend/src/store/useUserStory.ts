@@ -1,4 +1,4 @@
-import type { User, UserState } from '../types/user.ts'
+import type { User, UserAvatar, UserState } from '../types/user.ts'
 import { create } from 'zustand'
 import useApi from '../hooks/useApi'
 import { getStoredLastProjectId, saveLastProjectId } from '../utils/projectId.ts'
@@ -58,7 +58,13 @@ export const useUserStore = create<UserState>((set, get) => {
 
     clearUser: () => set({ user: null }),
 
-    uploadAvatar: () => {},
+    uploadAvatar: async (file: File): Promise<string> => {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const data: UserAvatar = await api.post(`${endpoint}/avatar`, formData)
+      return data.url
+    },
 
     getRole: () => get().user?.role,
     getPermissions: () => get().user?.permissions,

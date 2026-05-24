@@ -13,7 +13,7 @@ function MainPage() {
     return (
       <div className={styles.root}>
         <div className={`${liquidGlass.wrapper} ${styles.wrapper}`}>
-          <Typography variant="h5" fontWeight={600}>
+          <Typography variant="h5" sx={{ margin: '0 0 16px;' }} fontWeight={600}>
             Ваши текущие проекты
           </Typography>
 

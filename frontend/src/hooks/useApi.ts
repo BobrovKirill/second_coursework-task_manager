@@ -21,40 +21,44 @@ async function request(endpoint: string, options: RequestOptions = {}) {
   const { method = 'GET', body, headers: extraHeaders } = options
 
   const token = getToken()
+  const isFormData = body instanceof FormData
+
+  const prepareBody = isFormData ? body : JSON.stringify(body) || undefined
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isFormData && { 'Content-Type': 'application/json' }),
       ...(token && { Authorization: `Bearer ${token}` }),
       ...extraHeaders,
     },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
+    body: prepareBody,
   })
 
   if (!response.ok) {
-    let errorBody: any = null;
+    let errorBody: any = null
 
     try {
-      errorBody = await response.json();
-    } catch {
+      errorBody = await response.json()
+    }
+    catch {
       // сервер вернул не JSON → берём текст
-      const text = await response.text().catch(() => "");
-      errorBody = { message: text || response.statusText };
+      const text = await response.text().catch(() => '')
+      errorBody = { message: text || response.statusText }
     }
 
     const apiError = {
       status: response.status,
       message:
-        errorBody.detail ||
-        errorBody.message ||
-        errorBody.error ||
-        response.statusText ||
-        "Что-то пошло не так...",
+        errorBody.detail
+        || errorBody.message
+        || errorBody.error
+        || response.statusText
+        || 'Что-то пошло не так...',
       raw: errorBody,
-    } as ApiErrorResponse;
+    } as ApiErrorResponse
 
-    throw apiError as ApiErrorResponse;
+    throw apiError
   }
 
   if (response.status === 204) {

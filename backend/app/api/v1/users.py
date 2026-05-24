@@ -1,8 +1,10 @@
 from typing import Optional
+import uuid
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from app.core.storage import upload_file, delete_file
 
 from app.core.deps import get_current_user
 from app.core.permissions import get_user_permissions
@@ -108,6 +110,21 @@ async def update_user(
 
     return result
 
+@router.post("/me/avatar", response_model=dict)
+async def upload_avatar(
+    file: UploadFile = File(...),
+):
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Разрешены только изображения jpeg, png, webp"
+        )
+
+    file_bytes = await file.read()
+    filename = f"{uuid.uuid4()}.{file.filename.split('.')[-1]}"
+    url = upload_file(file_bytes, f"avatars/{filename}", file.content_type)
+
+    return {"url": url}
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(

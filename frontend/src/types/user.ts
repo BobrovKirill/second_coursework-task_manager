@@ -63,3 +63,7 @@ export interface UserState {
   getRole: () => RoleType
   getPermissions: () => string[]
 }
+
+export interface UserAvatar {
+  url: string
+}
