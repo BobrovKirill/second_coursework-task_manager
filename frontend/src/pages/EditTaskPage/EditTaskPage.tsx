@@ -3,21 +3,27 @@ import type { TaskFormValues } from '../../components/TaskForm'
 import type { Task } from '../../types/task'
 import {
   Button,
-  Chip,
   Container,
-  Paper,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Stack,
   Typography,
 } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PRIORITY_MAP, TASK_TYPE_LABELS } from '../../components/TaskCard'
+import TaskControlPanel from '../../components/TaskControlPanel'
+import TaskDesk from '../../components/TaskDesk'
 import TaskForm from '../../components/TaskForm'
 import { getTaskColumns } from '../../constants/board'
 import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
 import { useBoardColumns } from '../../hooks/useBoardColumn'
 import { useProjectMembers } from '../../hooks/useProjectMembers'
+import { useUserStore } from '../../store/useUserStory'
 
 function getTaskFormValues(task: Task): TaskFormValues {
   return {
@@ -46,10 +52,22 @@ function formatDeadline(deadline: string | null) {
   return `${day}.${month}.${year}`
 }
 
+function canDeleteTask(task: Task, userId: number | undefined, role: string | undefined) {
+  if (userId === undefined) {
+    return false
+  }
+
+  return role === 'admin' || role === 'organizer' || task.creatorId === userId
+}
+
 function EditTaskPage() {
   const navigate = useNavigate()
   const { projectId, taskId } = useParams()
   const apiRef = useRef(useApi())
+
+  const currentUser = useUserStore(state => state.user)
+  const fetchUser = useUserStore(state => state.fetchUser)
+  const setLastProjectId = useUserStore(state => state.setLastProjectId)
 
   const currentProjectId = projectId !== undefined ? Number(projectId) : null
   const currentTaskId = taskId !== undefined ? Number(taskId) : null
@@ -58,8 +76,8 @@ function EditTaskPage() {
   const hasInvalidTaskId = currentTaskId === null || Number.isNaN(currentTaskId)
 
   const { members } = useProjectMembers(currentProjectId)
-  const { columns: boardColumns } = useBoardColumns(currentProjectId)
 
+  const { columns: boardColumns } = useBoardColumns(currentProjectId)
   const taskColumns = useMemo(
     () => getTaskColumns(boardColumns),
     [boardColumns],
@@ -85,6 +103,8 @@ function EditTaskPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const handleBackToBoard = () => {
     if (hasInvalidProjectId) {
@@ -94,6 +114,15 @@ function EditTaskPage() {
 
     void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
   }
+
+  useEffect(() => {
+    if (hasInvalidProjectId) {
+      return
+    }
+
+    setLastProjectId(currentProjectId)
+    void fetchUser()
+  }, [currentProjectId, fetchUser, hasInvalidProjectId, setLastProjectId])
 
   useEffect(() => {
     const loadTask = async () => {
@@ -149,6 +178,18 @@ function EditTaskPage() {
     setIsEditing(false)
   }
 
+  const handleOpenDeleteDialog = () => {
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleCloseDeleteDialog = () => {
+    if (isDeleting) {
+      return
+    }
+
+    setIsDeleteDialogOpen(false)
+  }
+
   const updateTask = async () => {
     if (hasInvalidProjectId || hasInvalidTaskId || isSaving) {
       return
@@ -186,6 +227,27 @@ function EditTaskPage() {
     }
   }
 
+  const deleteTask = async () => {
+    if (hasInvalidProjectId || hasInvalidTaskId || isDeleting) {
+      return
+    }
+
+    setIsDeleting(true)
+    setError(null)
+
+    try {
+      await apiRef.current.delete(`/tasks/${currentTaskId}`)
+      void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
+    }
+    catch {
+      setError('Не удалось удалить задачу')
+      setIsDeleteDialogOpen(false)
+    }
+    finally {
+      setIsDeleting(false)
+    }
+  }
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     void updateTask()
@@ -220,9 +282,12 @@ function EditTaskPage() {
   const taskTypeLabel = task.taskType !== null
     ? TASK_TYPE_LABELS[task.taskType] ?? task.taskType
     : '—'
+  const priorityLabel = PRIORITY_MAP[task.priority] ?? String(task.priority)
+  const deadlineLabel = formatDeadline(task.deadline)
   const assigneeName = task.assigneeId !== null
     ? taskFormMembers.find(member => member.id === task.assigneeId)?.name ?? `#${task.assigneeId}`
     : '—'
+  const shouldShowDeleteButton = canDeleteTask(task, currentUser?.id, currentUser?.role)
 
   return (
     <Container
@@ -252,118 +317,58 @@ function EditTaskPage() {
           )
         : (
             <Stack spacing={2} sx={{ width: '100%' }}>
-              <Paper
-                elevation={0}
-                sx={{
-                  width: '100%',
-                  p: 3,
-                  borderRadius: 4,
-                  border: '1px solid rgba(255, 255, 255, 0.55)',
-                  background: 'rgba(255, 255, 255, 0.72)',
-                  boxShadow: '0 10px 28px rgba(31, 38, 135, 0.12)',
-                  backdropFilter: 'blur(10px)',
-                }}
+              <TaskDesk
+                title={task.title}
+                description={task.description}
+                error={error}
+                canDelete={shouldShowDeleteButton}
+                onDeleteTask={handleOpenDeleteDialog}
+              />
+
+              <TaskControlPanel
+                statusLabel={statusLabel}
+                taskTypeLabel={taskTypeLabel}
+                priorityLabel={priorityLabel}
+                deadlineLabel={deadlineLabel}
+                assigneeName={assigneeName}
+                onEditTask={handleStartEdit}
+                onBackToBoard={handleBackToBoard}
+              />
+
+              <Dialog
+                open={isDeleteDialogOpen}
+                onClose={handleCloseDeleteDialog}
               >
-                <Stack spacing={2}>
-                  <Typography variant="h4" component="h1">
-                    {task.title}
-                  </Typography>
+                <DialogTitle>
+                  Удалить задачу?
+                </DialogTitle>
 
-                  {error !== null && (
-                    <Typography color="error">
-                      {error}
-                    </Typography>
-                  )}
+                <DialogContent>
+                  <DialogContentText>
+                    Задача будет удалена из проекта. Это действие нельзя будет отменить.
+                  </DialogContentText>
+                </DialogContent>
 
-                  <Typography
-                    variant="body1"
-                    color="text.secondary"
-                    sx={{
-                      whiteSpace: 'pre-wrap',
-                      overflowWrap: 'anywhere',
-                      wordBreak: 'break-word',
+                <DialogActions>
+                  <Button
+                    onClick={handleCloseDeleteDialog}
+                    disabled={isDeleting}
+                  >
+                    Отмена
+                  </Button>
+
+                  <Button
+                    color="error"
+                    variant="contained"
+                    onClick={() => {
+                      void deleteTask()
                     }}
+                    disabled={isDeleting}
                   >
-                    {task.description ?? 'Описание не заполнено'}
-                  </Typography>
-                </Stack>
-              </Paper>
-
-              <Paper
-                elevation={0}
-                sx={{
-                  width: '100%',
-                  p: 2,
-                  borderRadius: 4,
-                  border: '1px solid rgba(255, 255, 255, 0.55)',
-                  background: 'rgba(255, 255, 255, 0.72)',
-                  boxShadow: '0 10px 28px rgba(31, 38, 135, 0.12)',
-                  backdropFilter: 'blur(10px)',
-                }}
-              >
-                <Stack spacing={2}>
-                  <Stack
-                    direction={{ xs: 'column', md: 'row' }}
-                    spacing={2}
-                    justifyContent="space-between"
-                    alignItems={{ xs: 'flex-start', md: 'flex-end' }}
-                  >
-                    <Stack spacing={2}>
-                      <Typography variant="subtitle1" fontWeight={700}>
-                        Параметры задачи
-                      </Typography>
-
-                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                        <Chip label={`Статус: ${statusLabel}`} />
-                        <Chip label={`Тип: ${taskTypeLabel}`} />
-                        <Chip label={`Приоритет: ${PRIORITY_MAP[task.priority] ?? task.priority}`} />
-                        <Chip label={`Дедлайн: ${formatDeadline(task.deadline)}`} />
-                        <Chip label={`Исполнитель: ${assigneeName}`} />
-                      </Stack>
-                    </Stack>
-
-                    <Stack
-                      direction="row"
-                      spacing={1}
-                      sx={{
-                        flexShrink: 0,
-                        mb: 0.25,
-                      }}
-                    >
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleStartEdit}
-                        sx={{
-                          height: 30,
-                          px: 1.5,
-                          fontSize: '0.72rem',
-                        }}
-                      >
-                        Редактировать
-                      </Button>
-
-                      <Button
-                        size="small"
-                        variant="contained"
-                        onClick={handleBackToBoard}
-                        sx={{
-                          'height': 30,
-                          'px': 1.5,
-                          'fontSize': '0.72rem',
-                          'backgroundColor': 'rgba(255, 255, 255, 0.9)',
-                          'color': 'primary.main',
-                          '&:hover': {
-                            backgroundColor: 'rgba(255, 255, 255, 1)',
-                          },
-                        }}
-                      >
-                        Назад к доске
-                      </Button>
-                    </Stack>
-                  </Stack>
-                </Stack>
-              </Paper>
+                    {isDeleting ? 'Удаление...' : 'Удалить'}
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </Stack>
           )}
     </Container>
