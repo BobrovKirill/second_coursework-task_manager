@@ -147,6 +147,63 @@ class ProjectService:
             result.append(member_dict)
         
         return result
+
+    async def get_project_member(
+            self,
+            project_id: int,
+            user_id: int,
+            current_user_id: int
+    ):
+        """Получить одного участника проекта"""
+
+        # Проверяем существование проекта
+        project = await self.project_repo.get_by_id(project_id)
+        if not project:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Project not found"
+            )
+
+        # Проверяем, имеет ли текущий пользователь доступ к проекту
+        if not await self.member_repo.is_member(project_id, current_user_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this project"
+            )
+
+        # Получаем конкретного участника
+        member = await self.member_repo.get_project_member(project_id, user_id)
+        if not member:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Member not found in this project"
+            )
+
+        # Получаем роль участника
+        role_query = select(ProjectMemberRole).where(
+            ProjectMemberRole.project_id == project_id,
+            ProjectMemberRole.user_id == user_id
+        )
+        role_result = await self.db.execute(role_query)
+        project_member_role = role_result.scalar_one_or_none()
+
+        role_name = None
+        if project_member_role:
+            role_obj = await self.db.execute(
+                select(Role).where(Role.id == project_member_role.role_id)
+            )
+            role = role_obj.scalar_one_or_none()
+            if role:
+                role_name = role.name
+
+        # Формируем результат
+        return {
+            "project_id": member.project_id,
+            "member": member.member,
+            "joined_at": member.joined_at,
+            "specialty": member.specialty,
+            "role": role_name
+        }
     
     async def assign_role(self, project_id: int, user_id: int, role_name: str, current_user_id: int):
         if not await self.member_repo.is_member(project_id, user_id):

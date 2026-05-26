@@ -54,6 +54,17 @@ class ProjectMemberRepository:
         )
         result = await self.db.execute(stmt)
         return result.scalars().all()
+
+    async def get_project_member(self, project_id: int, user_id: int):
+        """Получить одного участника проекта по project_id и user_id"""
+        result = await self.db.execute(
+            select(ProjectMember)
+            .where(
+                ProjectMember.project_id == project_id,
+                ProjectMember.user_id == user_id
+            )
+        )
+        return result.scalar_one_or_none()
     
     async def is_member(self, project_id: int, user_id: int) -> bool:
         """Проверить, является ли пользователь участником"""

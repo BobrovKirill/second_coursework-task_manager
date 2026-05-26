@@ -123,6 +123,16 @@ async def get_members(
     """Получить список участников проекта"""
     return await service.get_project_members(project_id, current_user.id)
 
+@router.get("/{project_id}/members/{user_id}", response_model=ProjectMemberRead)
+async def get_member(
+    project_id: int,
+    user_id: int,
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(get_current_user)
+):
+    """Получить информацию об одном участнике проекта"""
+    return await service.get_project_member(project_id, user_id, current_user.id)
+
 @router.delete("/{project_id}/members/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_member(
     project_id: int,

@@ -92,3 +92,10 @@
 .avatarButton:hover {
     background: #fff;
 }
+
+.layoutButton {
+    margin-top: 24px;
+    width: 100%;
+
+    color: red;
+}

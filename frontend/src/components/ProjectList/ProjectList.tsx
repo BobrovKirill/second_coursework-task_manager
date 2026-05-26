@@ -1,5 +1,4 @@
 import type { ProjectListItem } from '../../types/project.ts'
-import type { MemberWithSpecialty } from '../../types/projectSpecialty.ts'
 import type { ProjectListProps } from './index.ts'
 import AnnouncementIcon from '@mui/icons-material/Announcement'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -30,9 +29,8 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
   const { setLastProjectId, getLastProjectId, user } = useUserStore()
   const navigate = useNavigate()
   const Icon = icon
-  const { getRole } = useUserStore()
   const api = useApi()
-  const [specialties, setSpecialties] = useState<Record<number, any>>({})
+  const [member, setMember] = useState<Record<number, any>>({})
 
   useEffect(() => {
     async function init() {
@@ -46,19 +44,19 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
 
   useEffect(() => {
     async function loadSpecialties() {
-      const result: Record<number, any> = {}
+      const memberProjects: Record<number, any> = {}
       for (const project of projects) {
         try {
-          const data: MemberWithSpecialty[] = await api.get(`/projects/${project.id}/members-with-specialties`)
-          const userSpecialty = data?.find((specialty: MemberWithSpecialty) => specialty.id === user?.id)
-          if (userSpecialty)
-            result[project.id] = userSpecialty
+          const data = await api.get(`/projects/${project.id}/members/${user.id}`)
+          if (data) {
+            memberProjects[project.id] = data
+          }
         }
         catch (e) {
           console.error(e)
         }
       }
-      setSpecialties(result)
+      setMember(memberProjects)
     }
     if (projects.length > 0)
       void loadSpecialties()
@@ -80,8 +78,6 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
     console.log(project)
   }
 
-  const currentRole = getDescriptionRole(getRole())
-
   return (
     <div className={styles.projects}>
       {loading
@@ -91,7 +87,8 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
               <List className={styles.projectList} disablePadding>
                 {projects.map((project) => {
                   const isActive = getLastProjectId() === project.id
-                  const userSpecialty = specialties[project.id]
+                  const userSpecialty = member[project.id]?.specialty
+                  const userRole = getDescriptionRole(member[project.id]?.role)
 
                   return (
                     <li className={`${styles.projectItem} ${isActive ? styles.projectItemActive : ''}`} key={project.id} onClick={async event => handleProjectClick(event, project)}>
@@ -128,10 +125,10 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                       )}
 
                       <div className={styles.projectItemFields}>
-                        {currentRole.title && currentRole.descriptionList.length && (
+                        {userRole.title && userRole.descriptionList.length && (
                           <TextField
                             label="Роль и права на проекте"
-                            value={currentRole.title}
+                            value={userRole.title}
                             fullWidth
                             className={`${base.field} ${styles.fullWidth}`}
                             InputProps={{
@@ -143,7 +140,7 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                                       <>
                                         <div>Права пользователя:</div>
                                         <ol style={{ paddingLeft: '20px', margin: '6px 0 0 0' }}>
-                                          {currentRole.descriptionList.map((item, index) => (
+                                          {userRole.descriptionList.map((item, index) => (
                                             <li key={index}>{item}</li>
                                           ))}
                                         </ol>
@@ -165,13 +162,13 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                         {userSpecialty && (
                           <TextField
                             label="Должность на проекте"
-                            value={userSpecialty.specialty_name || 'отсутсвует'}
+                            value={userSpecialty.name || 'отсутсвует'}
                             fullWidth
                             className={`${base.field} ${styles.fullWidth}`}
                             InputProps={{
                               readOnly: true,
                               endAdornment: (
-                                <div className={styles.color} style={{ backgroundColor: userSpecialty.specialty_hex_color }} />
+                                <div className={styles.color} style={{ backgroundColor: userSpecialty.hex_color }} />
                               ),
                             }}
                           />
