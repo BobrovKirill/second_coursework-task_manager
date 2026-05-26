@@ -7,6 +7,7 @@ function TaskControlPanel({
   priorityLabel,
   deadlineLabel,
   assigneeName,
+  canEdit,
   onEditTask,
   onBackToBoard,
 }: TaskControlPanelProps) {
@@ -51,18 +52,20 @@ function TaskControlPanel({
             mb: 0.25,
           }}
         >
-          <Button
-            size="small"
-            variant="contained"
-            onClick={onEditTask}
-            sx={{
-              height: 30,
-              px: 1.5,
-              fontSize: '0.72rem',
-            }}
-          >
-            Редактировать
-          </Button>
+          {canEdit && (
+            <Button
+              size="small"
+              variant="contained"
+              onClick={onEditTask}
+              sx={{
+                height: 30,
+                px: 1.5,
+                fontSize: '0.72rem',
+              }}
+            >
+              Редактировать
+            </Button>
+          )}
 
           <Button
             size="small"

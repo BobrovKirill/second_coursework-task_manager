@@ -4,6 +4,7 @@ export interface TaskControlPanelProps {
   priorityLabel: string
   deadlineLabel: string
   assigneeName: string
+  canEdit: boolean
   onEditTask: () => void
   onBackToBoard: () => void
 }

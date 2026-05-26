@@ -14,7 +14,7 @@ function ProjectBoardPage() {
   const currentProjectId = Number(projectId ?? id)
   const hasInvalidProjectId = Number.isNaN(currentProjectId)
 
-  const { tasks, loading, error, deleteTask } = useTasks(
+  const { tasks, loading, error } = useTasks(
     hasInvalidProjectId ? null : currentProjectId,
   )
 
@@ -83,7 +83,6 @@ function ProjectBoardPage() {
             column={column}
             tasks={columnTasks}
             members={taskMembers}
-            onDeleteTask={deleteTask}
           />
         )
       })}

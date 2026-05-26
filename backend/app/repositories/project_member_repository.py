@@ -1,7 +1,8 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete, and_
 from sqlalchemy.orm import selectinload
-from app.models.project_member import ProjectMember
+from app.models.project_member import ProjectMember, ProjectMemberRole
+from app.models.role import Role
 from app.models.user import User
 from typing import List, Optional
 
@@ -61,3 +62,18 @@ class ProjectMemberRepository:
         )
         result = await self.db.execute(stmt)
         return result.scalar_one_or_none() is not None
+    
+    async def get_member_role_name(self, project_id: int, user_id: int) -> Optional[str]:
+        """Получить название роли пользователя в проекте"""
+        stmt = (
+            select(Role.name)
+            .join(ProjectMemberRole, ProjectMemberRole.role_id == Role.id)
+            .where(
+                and_(
+                    ProjectMemberRole.project_id == project_id,
+                    ProjectMemberRole.user_id == user_id
+                )
+            )
+        )
+        result = await self.db.execute(stmt)
+        return result.scalar_one_or_none()

@@ -15,6 +15,7 @@ class TaskService:
 
     async def create_task(self, project_id: int, data: TaskCreate, current_user_id: int):
         project = await self.project_repo.get_by_id(project_id)
+
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
@@ -28,6 +29,7 @@ class TaskService:
 
     async def get_project_tasks(self, project_id: int, current_user_id: int):
         project = await self.project_repo.get_by_id(project_id)
+
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
@@ -35,6 +37,7 @@ class TaskService:
             project.owner_id == current_user_id
             or await self.member_repo.is_member(project_id, current_user_id)
         )
+
         if not can_view:
             raise HTTPException(
                 status_code=403,
@@ -45,10 +48,12 @@ class TaskService:
 
     async def get_task(self, task_id: int, current_user_id: int):
         task = await self.task_repo.get_by_id(task_id)
+
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
         project = await self.project_repo.get_by_id(task.project_id)
+
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
@@ -56,6 +61,7 @@ class TaskService:
             project.owner_id == current_user_id
             or await self.member_repo.is_member(project.id, current_user_id)
         )
+
         if not can_view:
             raise HTTPException(
                 status_code=403,
@@ -66,34 +72,69 @@ class TaskService:
 
     async def update_task(self, task_id: int, data: TaskUpdate, current_user_id: int):
         task = await self.task_repo.get_by_id(task_id)
+
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
         project = await self.project_repo.get_by_id(task.project_id)
+
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        if project.owner_id != current_user_id:
+        can_update = await self._can_manage_task(
+            project_id=project.id,
+            project_owner_id=project.owner_id,
+            task_creator_id=task.creator_id,
+            current_user_id=current_user_id,
+        )
+
+        if not can_update:
             raise HTTPException(
-                status_code=403,
-                detail="Only project owner can update tasks",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to update this task",
             )
 
         return await self.task_repo.update(task, data)
 
     async def delete_task(self, task_id: int, current_user_id: int):
         task = await self.task_repo.get_by_id(task_id)
+
         if not task:
             raise HTTPException(status_code=404, detail="Task not found")
 
         project = await self.project_repo.get_by_id(task.project_id)
+
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
 
-        if project.owner_id != current_user_id:
+        can_delete = await self._can_manage_task(
+            project_id=project.id,
+            project_owner_id=project.owner_id,
+            task_creator_id=task.creator_id,
+            current_user_id=current_user_id,
+        )
+
+        if not can_delete:
             raise HTTPException(
-                status_code=403,
-                detail="Only project owner can delete tasks",
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to delete this task",
             )
 
         await self.task_repo.delete(task)
+
+    async def _can_manage_task(
+        self,
+        project_id: int,
+        project_owner_id: int,
+        task_creator_id: int,
+        current_user_id: int,
+    ) -> bool:
+        if project_owner_id == current_user_id:
+            return True
+
+        if task_creator_id == current_user_id:
+            return True
+
+        role_name = await self.member_repo.get_member_role_name(project_id, current_user_id)
+
+        return role_name in ("admin", "organizer")

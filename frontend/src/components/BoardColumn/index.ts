@@ -6,7 +6,6 @@ export interface BoardColumnProps {
   column: BoardColumn
   tasks: Task[]
   members?: TaskCardMember[]
-  onDeleteTask?: (taskId: number) => void | Promise<void>
 }
 
 export { default } from './BoardColumn'

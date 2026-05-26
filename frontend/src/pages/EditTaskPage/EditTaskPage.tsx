@@ -60,6 +60,14 @@ function canDeleteTask(task: Task, userId: number | undefined, role: string | un
   return role === 'admin' || role === 'organizer' || task.creatorId === userId
 }
 
+function canEditTask(task: Task, userId: number | undefined, role: string | undefined) {
+  if (userId === undefined) {
+    return false
+  }
+
+  return role === 'admin' || role === 'organizer' || task.creatorId === userId
+}
+
 function EditTaskPage() {
   const navigate = useNavigate()
   const { projectId, taskId } = useParams()
@@ -288,6 +296,7 @@ function EditTaskPage() {
     ? taskFormMembers.find(member => member.id === task.assigneeId)?.name ?? `#${task.assigneeId}`
     : '—'
   const shouldShowDeleteButton = canDeleteTask(task, currentUser?.id, currentUser?.role)
+  const shouldShowEditButton = canEditTask(task, currentUser?.id, currentUser?.role)
 
   return (
     <Container
@@ -331,6 +340,7 @@ function EditTaskPage() {
                 priorityLabel={priorityLabel}
                 deadlineLabel={deadlineLabel}
                 assigneeName={assigneeName}
+                canEdit={shouldShowEditButton}
                 onEditTask={handleStartEdit}
                 onBackToBoard={handleBackToBoard}
               />
