@@ -30,7 +30,7 @@ export interface User {
   avatar?: string
   projects: UserProject[]
   role: RoleType
-  permissions: permissionsType
+  permissions: permissionsType[]
 }
 
 export interface UserListItem {

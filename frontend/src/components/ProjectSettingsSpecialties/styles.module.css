@@ -1,0 +1,115 @@
+.section {
+  padding: 24px 24px 32px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  margin-bottom: 20px !important;
+  font-weight: 600 !important;
+  color: #1a1a2e;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.columnsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 4px;
+}
+
+.columnItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.columnItem:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.columnTitle {
+  flex: 1;
+}
+
+.columnActions {
+  display: flex;
+  gap: 4px;
+}
+
+.specialtyColorButton {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+
+.specialtyColorButton:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.08);
+}
+
+.specialtyColorButton:active {
+  transform: scale(0.95);
+}
+
+.hiddenColorInput {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.specialtyColorIndicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+
+.actionButton {
+  padding: 4px !important;
+}
+
+.emptyState {
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 20px;
+  }
+}

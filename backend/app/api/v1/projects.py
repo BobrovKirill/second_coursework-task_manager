@@ -15,9 +15,15 @@ from app.schemas.board_column import BoardColumnRead
 from app.schemas.board_column import BoardColumnUpdate
 from app.services.project_specialty_service import ProjectSpecialtyService
 from app.schemas.project_specialty import ProjectSpecialtyCreate, ProjectSpecialtyRead, ProjectSpecialtyUpdate, MemberSpecialtyAssign
-from app.schemas.project_member import ProjectMemberWithSpecialty
+from app.schemas.project_member import ProjectMemberRead
 from app.schemas.task import TaskCreate, TaskRead
 from app.services.task_service import TaskService
+from typing import Optional
+import uuid
+from fastapi import APIRouter, Depends, status, UploadFile, File, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.storage import upload_file, delete_file
+from urllib.parse import urlparse
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -108,7 +114,7 @@ async def add_member(
     """Добавить участника в проект"""
     return await service.add_member(project_id, user_id, current_user.id)
 
-@router.get("/{project_id}/members", response_model=List[UserRead])
+@router.get("/{project_id}/members", response_model=List[ProjectMemberRead])
 async def get_members(
     project_id: int,
     service: ProjectService = Depends(get_project_service),
@@ -259,11 +265,114 @@ async def assign_member_specialty(
         project_id, user_id, data.specialty_id, current_user.id
     )
 
-@router.get("/{project_id}/members-with-specialties", response_model=List[ProjectMemberWithSpecialty])
-async def get_members_with_specialties(
+@router.post("/{project_id}/icon", response_model=dict)
+async def upload_project_icon(
+    project_id: int,
+    file: UploadFile = File(...),
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Загрузить иконку проекта"""
+    project = await service.get_project(project_id, current_user.id)
+    
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp", "image/svg+xml"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Разрешены только изображения jpeg, png, webp, svg"
+        )
+    
+    if project.icon_url:
+        key = _extract_key_from_url(project.icon_url)
+        delete_file(key)
+    
+    file_bytes = await file.read()
+    ext = file.filename.split('.')[-1] if '.' in file.filename else 'png'
+    filename = f"project_icons/{uuid.uuid4()}.{ext}"
+    url = upload_file(file_bytes, filename, file.content_type)
+    
+    update_data = ProjectUpdate(icon_url=url)
+    await service.project_repo.update(project_id, update_data)
+    
+    return {"url": url}
+
+
+@router.post("/{project_id}/background-image", response_model=dict)
+async def upload_project_background(
+    project_id: int,
+    file: UploadFile = File(...),
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Загрузить фоновое изображение проекта"""
+    project = await service.get_project(project_id, current_user.id)
+    
+    if file.content_type not in ["image/jpeg", "image/png", "image/webp"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Разрешены только изображения jpeg, png, webp"
+        )
+    
+    if project.background_type == "image" and project.background_value:
+        key = _extract_key_from_url(project.background_value)
+        delete_file(key)
+    
+    file_bytes = await file.read()
+    ext = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+    filename = f"project_backgrounds/{uuid.uuid4()}.{ext}"
+    url = upload_file(file_bytes, filename, file.content_type)
+    
+    update_data = ProjectUpdate(
+        background_type="image",
+        background_value=url
+    )
+    await service.project_repo.update(project_id, update_data)
+    
+    return {"url": url}
+
+
+@router.delete("/{project_id}/icon", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project_icon(
     project_id: int,
     service: ProjectService = Depends(get_project_service),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    """Получить участников проекта со специальностями"""
-    return await service.get_members_with_specialties(project_id, current_user.id)
+    """Удалить иконку проекта"""
+    project = await service.get_project(project_id, current_user.id)
+    
+    if project.icon_url:
+        key = _extract_key_from_url(project.icon_url)
+        delete_file(key)
+
+    update_data = ProjectUpdate(icon_url=None)
+    await service.project_repo.update(project_id, update_data)
+
+
+@router.delete("/{project_id}/background-image", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_project_background(
+    project_id: int,
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Удалить фоновое изображение проекта"""
+    project = await service.get_project(project_id, current_user.id)
+    
+    if project.background_type == "image" and project.background_value:
+        key = _extract_key_from_url(project.background_value)
+        delete_file(key)
+    
+    update_data = ProjectUpdate(
+        background_type="default",
+        background_value=None
+    )
+    await service.project_repo.update(project_id, update_data)
+
+def _extract_key_from_url(url: str) -> str:
+    """Извлекает ключ из URL """
+    if url.startswith('http://') or url.startswith('https://'):
+        parsed = urlparse(url)
+        path = parsed.path.lstrip('/')
+        parts = path.split('/', 1)
+        return parts[1] if len(parts) > 1 else path
+    return url

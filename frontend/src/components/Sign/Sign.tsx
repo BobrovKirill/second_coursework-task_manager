@@ -1,7 +1,7 @@
 import type { SignModalProps } from './index.ts'
 import { Box, Paper } from '@mui/material'
-import styles from './style.module.css'
 import liquidGlass from '../../styles/liquidGlass.module.css'
+import styles from './style.module.css'
 
 function Sign({ children }: SignModalProps) {
   return (

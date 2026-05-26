@@ -117,8 +117,37 @@ class ProjectService:
         if not await self.member_repo.is_member(project_id, current_user_id):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You don't have access to this project")
 
-        return await self.member_repo.get_project_members(project_id)
-
+        members = await self.member_repo.get_project_members(project_id)
+        
+        member_ids = [m.user_id for m in members]
+        roles_query = select(ProjectMemberRole).where(
+            ProjectMemberRole.project_id == project_id,
+            ProjectMemberRole.user_id.in_(member_ids)
+        )
+        roles_result = await self.db.execute(roles_query)
+        roles = {r.user_id: r for r in roles_result.scalars().all()}
+        
+        result = []
+        for member in members:
+            member_dict = {
+                "project_id": member.project_id,
+                "member": member.member,
+                "joined_at": member.joined_at,
+                "specialty": member.specialty,
+                "role": None
+            }
+            
+            if member.user_id in roles:
+                role_query = select(Role).where(Role.id == roles[member.user_id].role_id)
+                role_result = await self.db.execute(role_query)
+                role = role_result.scalar_one_or_none()
+                if role:
+                    member_dict["role"] = role.name
+            
+            result.append(member_dict)
+        
+        return result
+    
     async def assign_role(self, project_id: int, user_id: int, role_name: str, current_user_id: int):
         if not await self.member_repo.is_member(project_id, user_id):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Участник не найден в проекте")
@@ -148,20 +177,3 @@ class ProjectService:
 
         await self.db.commit()
         return {"message": f"Роль '{role_name}' назначена"}
-    
-    async def get_members_with_specialties(self, project_id: int, current_user_id: int):
-        """Получить участников со специальностями"""
-        project = await self.project_repo.get_by_id(project_id)
-        if not project:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, 
-                detail="Project not found"
-            )
-        
-        if not await self.member_repo.is_member(project_id, current_user_id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail="You don't have access to this project"
-            )
-        
-        return await self.project_repo.get_members_with_specialties(project_id)

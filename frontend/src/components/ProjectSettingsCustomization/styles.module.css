@@ -1,0 +1,131 @@
+.section {
+  padding: 24px 24px 32px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  margin-bottom: 20px !important;
+  font-weight: 600 !important;
+  color: #1a1a2e;
+}
+
+.customizationGroup {
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  margin-bottom: 12px !important;
+  font-weight: 500 !important;
+  color: #444;
+}
+
+.colorPicker {
+  width: 100px;
+  height: 40px;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.largeColorPicker {
+  width: 100%;
+  height: 60px;
+  padding: 4px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.selectField {
+  margin-bottom: 16px !important;
+}
+
+.backgroundConfig {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  margin-top: 16px;
+}
+
+.configLabel {
+  margin-bottom: 8px !important;
+  color: #555;
+}
+
+.gradientColors {
+  display: flex;
+  gap: 20px;
+}
+
+.gradientColorField {
+  flex: 1;
+}
+
+.hexInput {
+  margin-top: 8px !important;
+}
+
+.gradientAngle {
+  margin-top: 16px !important;
+}
+
+.imagePlaceholder {
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+  margin-top: 16px;
+}
+
+.divider {
+  margin: 24px 0 !important;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 20px;
+  }
+  
+  .gradientColors {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.bgPreviewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.bgPreview {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.bgActions {
+  display: flex;
+  gap: 8px;
+}
+
+.bgUploadPlaceholder {
+  padding: 24px;
+  text-align: center;
+  width: 100%;
+}

@@ -1,4 +1,3 @@
-# app/models/project.py
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, String, Text, Boolean, func, Integer
 from typing import Optional
@@ -24,7 +23,6 @@ class Project(Base):
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     
-    # Настройки кастомизации
     icon_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     font_color: Mapped[Optional[str]] = mapped_column(String(7), nullable=True, default="#000000")
     background_type: Mapped[str] = mapped_column(String(20), nullable=False, default="default")

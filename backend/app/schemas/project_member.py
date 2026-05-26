@@ -9,6 +9,7 @@ class ProjectMemberRead(BaseModel):
     user: UserRead = Field(alias="member")
     joined_at: datetime
     specialty: Optional[ProjectSpecialtyRead] = None
+    role: Optional[str] = None
     
     model_config = ConfigDict(
         from_attributes=True,
@@ -20,13 +21,3 @@ class ProjectMemberAdd(BaseModel):
 
 class MemberRoleAssign(BaseModel):
     role_name: str
-
-class ProjectMemberWithSpecialty(BaseModel):
-    id: int
-    username: str
-    email: str
-    specialty_id: Optional[int] = None
-    specialty_name: Optional[str] = None
-    specialty_hex_color: Optional[str] = None
-    
-    model_config = ConfigDict(from_attributes=True)

@@ -4,10 +4,10 @@ import {
   Button,
   CircularProgress,
   Container,
-  Typography,
   ThemeProvider,
+  Typography,
 } from '@mui/material'
-import { Outlet, useNavigate, useParams } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useProject } from '../../hooks/useProject'
 import { useProjectBackground } from '../../hooks/useProjectBackground'
 import { useProjectFontColor } from '../../hooks/useProjectFontColor'
@@ -15,6 +15,7 @@ import styles from './styles.module.css'
 
 function ProjectPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { id } = useParams<{ id: string }>()
   const projectId = Number(id)
 
@@ -22,17 +23,20 @@ function ProjectPage() {
 
   const backdropStyle = useProjectBackground(
     project?.background_type,
-    project?.background_value ?? null
+    project?.background_value ?? null,
   )
   const fontTheme = useProjectFontColor(project?.font_color)
+
+  const isSettingsPage = location.pathname.endsWith('/settings')
 
   const handleGoToCreateTask = () => {
     navigate(`/projects/${projectId}/tasks/create`)
   }
 
   const truncateText = (text: string, maxLength: number = 75) => {
-    if (text.length <= maxLength) return text
-    return text.substring(0, maxLength).trim() + '...'
+    if (text.length <= maxLength)
+      return text
+    return `${text.substring(0, maxLength).trim()}...`
   }
 
   if (loading) {
@@ -71,10 +75,10 @@ function ProjectPage() {
       <div className={styles.glass}>
         <ThemeProvider theme={fontTheme}>
           <Container maxWidth="xl" className={styles.container}>
-            <div className={styles.projectHeader}>
+            <div className={`${styles.projectHeader} ${isSettingsPage ? styles.projectHeaderHidden : ''}`}>
               <div>
-                <Typography 
-                  variant="h4" 
+                <Typography
+                  variant="h4"
                   className={styles.projectName}
                   sx={{ color: 'text.primary' }}
                 >

@@ -1,9 +1,9 @@
-import {ROUTES} from "../../constants/routes.ts";
+import type { SvgIconComponent } from '@mui/icons-material'
 import DashboardIcon from '@mui/icons-material/Dashboard'
 import FolderIcon from '@mui/icons-material/Folder'
-import GroupIcon from '@mui/icons-material/Group';
-import ViewKanbanIcon from '@mui/icons-material/ViewKanban';
-import type {SvgIconComponent} from "@mui/icons-material";
+import GroupIcon from '@mui/icons-material/Group'
+import ViewKanbanIcon from '@mui/icons-material/ViewKanban'
+import { ROUTES } from '../../constants/routes.ts'
 
 export const DRAWER_WIDTH = 280
 
@@ -57,4 +57,4 @@ export interface NavDrawerProps {
   onClose: () => void
 }
 
-export { default } from './HeaderNav.tsx';
+export { default } from './HeaderNav.tsx'

@@ -42,12 +42,15 @@ class ProjectMemberRepository:
         await self.db.commit()
         return result.rowcount > 0
     
-    async def get_project_members(self, project_id: int) -> List[User]:
+    async def get_project_members(self, project_id: int) -> List[ProjectMember]:
         """Получить всех участников проекта"""
         stmt = (
-            select(User)
-            .join(ProjectMember, User.id == ProjectMember.user_id)
+            select(ProjectMember)
             .where(ProjectMember.project_id == project_id)
+            .options(
+                selectinload(ProjectMember.member),
+                selectinload(ProjectMember.specialty)
+            )
         )
         result = await self.db.execute(stmt)
         return result.scalars().all()

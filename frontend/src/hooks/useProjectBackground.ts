@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import type { BackgroundType } from '../types/project'
+import { useMemo } from 'react'
 import defaultBg from '../assets/images/layout_bg.jpg'
 
 interface ProjectBackgroundStyle {
@@ -12,10 +12,10 @@ interface ProjectBackgroundStyle {
 
 export function useProjectBackground(
   backgroundType: BackgroundType = 'default',
-  backgroundValue: string | null = null
+  backgroundValue: string | null = null,
 ): ProjectBackgroundStyle {
   return useMemo(() => {
-    if (backgroundType === 'default' || backgroundType === 'image' && !backgroundValue) {
+    if (backgroundType === 'default' || !backgroundValue) {
       return {
         backgroundImage: `url(${defaultBg})`,
         backgroundSize: 'cover',
@@ -39,7 +39,7 @@ export function useProjectBackground(
 
     if (backgroundType === 'image') {
       return {
-        backgroundImage: `url(${defaultBg})`,
+        backgroundImage: `url(${backgroundValue})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',

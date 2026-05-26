@@ -1,3 +1,4 @@
+import type { Project } from '../../types/project'
 import AccountCircle from '@mui/icons-material/AccountCircle'
 import MenuIcon from '@mui/icons-material/Menu'
 import Settings from '@mui/icons-material/Settings'
@@ -9,10 +10,11 @@ import {
   Toolbar,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import Logo from '../../assets/react.svg?react'
 import { ROUTES } from '../../constants/routes.ts'
+import useApi from '../../hooks/useApi'
 import { useUserStore } from '../../store/useUserStory'
 import liquidGlass from '../../styles/liquidGlass.module.css'
 import HeaderNav from '../HeaderNav'
@@ -23,6 +25,25 @@ function Header() {
   const [isShowNav, setShowNav] = useState(false)
   const { id } = useParams<{ id: string }>()
   const lastProjectId = useUserStore(state => state.lastProjectId)
+  const [projectIcon, setProjectIcon] = useState<string | null>(null)
+  const api = useApi()
+
+  useEffect(() => {
+    const projectId = id ? Number(id) : lastProjectId
+
+    if (projectId) {
+      api.get(`/projects/${projectId}`)
+        .then((project: Project) => {
+          setProjectIcon(project.icon_url || null)
+        })
+        .catch(() => {
+          setProjectIcon(null)
+        })
+    }
+    else {
+      setProjectIcon(null)
+    }
+  }, [id, lastProjectId])
 
   const handleDrawerToggle = () => {
     setShowNav(!isShowNav)
@@ -86,7 +107,18 @@ function Header() {
               display: { xs: 'none', md: 'block' },
             }}
           >
-            <Logo />
+            {projectIcon
+              ? (
+                  <Box
+                    component="img"
+                    src={projectIcon}
+                    alt="Project logo"
+                    className={styles.projectIcon}
+                  />
+                )
+              : (
+                  <Logo />
+                )}
           </Box>
 
           <Box sx={{ display: 'flex', gap: 1 }}>

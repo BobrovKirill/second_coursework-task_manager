@@ -1,5 +1,4 @@
-import type {NavItem} from "../HeaderNav";
-import type {UserListItem} from "../../types/user";
+import type { NavItem } from '../HeaderNav'
 
 export interface ListItem {
   id: number | string

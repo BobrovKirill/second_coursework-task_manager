@@ -1,1 +1,1 @@
-export { default } from "./CreateTaskPage";
+export { default } from './CreateTaskPage'

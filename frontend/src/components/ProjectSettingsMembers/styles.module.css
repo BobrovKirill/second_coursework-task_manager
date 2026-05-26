@@ -1,0 +1,93 @@
+.section {
+  padding: 24px 24px 32px;
+  margin-bottom: 24px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.sectionTitle {
+  margin-bottom: 20px !important;
+  font-weight: 600 !important;
+  color: #1a1a2e;
+}
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.membersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-top: 4px;
+}
+
+.memberItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.memberItem:hover {
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.memberName {
+  flex: 1;
+  font-size: 0.95rem;
+  color: #1a1a2e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  padding: 4px !important;
+}
+
+.emptyState {
+  padding: 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 12px;
+  border: 2px dashed rgba(0, 0, 0, 0.12);
+}
+
+.loadingContainer {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 20px;
+  }
+  
+  .memberItem {
+    min-height: 60px;
+  }
+}

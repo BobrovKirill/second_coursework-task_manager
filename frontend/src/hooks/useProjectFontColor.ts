@@ -1,5 +1,5 @@
-import { useMemo } from 'react'
 import { createTheme } from '@mui/material'
+import { useMemo } from 'react'
 
 export function useProjectFontColor(fontColor: string = '#000000') {
   const theme = useMemo(
@@ -15,7 +15,7 @@ export function useProjectFontColor(fontColor: string = '#000000') {
           fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
         },
       }),
-    [fontColor]
+    [fontColor],
   )
 
   return theme

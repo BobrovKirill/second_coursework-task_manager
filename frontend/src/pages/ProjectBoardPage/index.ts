@@ -1,1 +1,1 @@
-export { default } from './ProjectBoardPage';
+export { default } from './ProjectBoardPage'

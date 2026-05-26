@@ -1,9 +1,9 @@
-import type { MemberWithSpecialty } from '../types/projectSpecialty'
+import type { ProjectMember } from '../types/project'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import useApi from './useApi'
 
 export function useProjectMembers(projectId: number | null) {
-  const [members, setMembers] = useState<MemberWithSpecialty[]>([])
+  const [members, setMembers] = useState<ProjectMember[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
 
@@ -22,11 +22,16 @@ export function useProjectMembers(projectId: number | null) {
     setError(null)
 
     try {
-      const data = (await apiRef.current.get(
-        `/projects/${projectId}/members-with-specialties`,
-      )) as MemberWithSpecialty[]
+      const data = await apiRef.current.get(`/projects/${projectId}/members`)
 
-      setMembers(data)
+      const mappedData = Array.isArray(data)
+        ? data.map((item: any) => ({
+            ...item,
+            user: item.member,
+          }))
+        : []
+
+      setMembers(mappedData as ProjectMember[])
     }
     catch (err) {
       setError(err as Error)
@@ -41,13 +46,18 @@ export function useProjectMembers(projectId: number | null) {
       throw new Error('Не удалось определить проект')
     }
 
-    const newMember = (await apiRef.current.post(
+    const newMember = await apiRef.current.post(
       `/projects/${projectId}/members/${userId}`,
-    )) as MemberWithSpecialty
+    )
 
-    setMembers(prev => [...prev, newMember])
+    const mappedMember = {
+      ...newMember,
+      user: newMember.member,
+    }
 
-    return newMember
+    setMembers(prev => [...prev, mappedMember as ProjectMember])
+
+    return mappedMember
   }, [hasInvalidProjectId, projectId])
 
   const removeMember = useCallback(async (userId: number) => {
@@ -57,7 +67,7 @@ export function useProjectMembers(projectId: number | null) {
 
     await apiRef.current.delete(`/projects/${projectId}/members/${userId}`)
 
-    setMembers(prev => prev.filter(member => member.id !== userId))
+    setMembers(prev => prev.filter(member => member.user.id !== userId))
   }, [hasInvalidProjectId, projectId])
 
   const assignSpecialty = useCallback(async (userId: number, specialtyId: number | null) => {

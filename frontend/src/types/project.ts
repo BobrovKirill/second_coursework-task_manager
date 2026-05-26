@@ -1,3 +1,4 @@
+import type { ProjectSpecialty } from './projectSpecialty'
 import type { UserListItem } from './user'
 
 export type BackgroundType = 'default' | 'color' | 'gradient' | 'image'
@@ -16,8 +17,15 @@ export interface Project {
   background_value: string | null
 }
 
+export interface ProjectMember {
+  project_id: number
+  user: UserListItem
+  joined_at: string
+  specialty: ProjectSpecialty | null
+  role: string | null
+}
 export interface ProjectWithMembers extends Project {
-  members: UserListItem[]
+  members: ProjectMember[]
 }
 
 export interface ProjectCreate {
