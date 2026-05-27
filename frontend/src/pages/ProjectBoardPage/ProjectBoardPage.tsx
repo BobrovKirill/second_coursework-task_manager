@@ -29,8 +29,8 @@ function ProjectBoardPage() {
   )
 
   const taskMembers = members.map(member => ({
-    id: member.id,
-    name: member.username || member.email,
+    id: member.user.id,
+    name: member.user.username || member.user.email,
   }))
 
   const columnsWithStatuses = useMemo(
