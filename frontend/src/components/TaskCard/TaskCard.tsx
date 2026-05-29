@@ -1,4 +1,4 @@
-import type { KeyboardEvent } from 'react'
+import type { KeyboardEvent, MouseEvent } from 'react'
 import type { TaskCardProps } from './index'
 import { Card, CardContent, Chip, Stack, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -9,7 +9,6 @@ import styles from './style.module.css'
 function TaskCard({ task, members = [] }: TaskCardProps) {
   const { id, projectId } = useParams()
   const navigate = useNavigate()
-
   const currentProjectId = projectId ?? id
 
   function handleOpenTask() {
@@ -18,6 +17,16 @@ function TaskCard({ task, members = [] }: TaskCardProps) {
     }
 
     void navigate(ROUTES.EDIT_TASK(currentProjectId, task.id))
+  }
+
+  function handleCardClick(event: MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement
+
+    if (target.closest('[data-is-dragging="true"]') !== null) {
+      return
+    }
+
+    handleOpenTask()
   }
 
   function handleOpenTaskByKeyboard(event: KeyboardEvent<HTMLDivElement>) {
@@ -43,16 +52,24 @@ function TaskCard({ task, members = [] }: TaskCardProps) {
       className={styles.card}
       role="button"
       tabIndex={0}
-      onClick={handleOpenTask}
+      onClick={handleCardClick}
       onKeyDown={handleOpenTaskByKeyboard}
     >
       <CardContent className={styles.content}>
-        <Typography
-          variant="subtitle2"
-          className={styles.title}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="flex-start"
+          spacing={1}
+          className={styles.header}
         >
-          {task.title}
-        </Typography>
+          <Typography
+            variant="subtitle2"
+            className={styles.title}
+          >
+            {task.title}
+          </Typography>
+        </Stack>
 
         <Typography
           variant="body2"
@@ -67,12 +84,10 @@ function TaskCard({ task, members = [] }: TaskCardProps) {
             size="small"
             label={`Тип: ${taskTypeLabel}`}
           />
-
           <Chip
             size="small"
             label={`Приоритет: ${PRIORITY_MAP[task.priority] ?? task.priority}`}
           />
-
           <Chip
             size="small"
             label={`Дедлайн: ${task.deadline ?? '—'}`}

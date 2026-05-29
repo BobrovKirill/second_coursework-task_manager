@@ -12,7 +12,6 @@ function normalizeTasks(data: unknown): Task[] {
 
 export function useTasks(projectId: number | null) {
   const apiRef = useRef(useApi())
-
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,13 +41,46 @@ export function useTasks(projectId: number | null) {
 
     try {
       await apiRef.current.delete(`/tasks/${taskId}`)
-
       setTasks(prev => prev.filter(task => task.id !== taskId))
     }
     catch {
       setError('Не удалось удалить задачу')
     }
   }, [])
+
+  const updateTaskStatus = useCallback(async (taskId: number, status: string) => {
+    const currentTask = tasks.find(task => task.id === taskId)
+
+    if (currentTask === undefined || currentTask.status === status) {
+      return
+    }
+
+    const previousTasks = tasks
+
+    setError(null)
+    setTasks(prev => prev.map(task => (
+      task.id === taskId
+        ? { ...task, status }
+        : task
+    )))
+
+    try {
+      const updatedTask = await apiRef.current.put(`/tasks/${taskId}`, {
+        status,
+      }) as Task
+
+      setTasks(prev => prev.map(task => (
+        task.id === taskId
+          ? updatedTask
+          : task
+      )))
+    }
+    catch {
+      setError('Не удалось изменить статус задачи')
+      setTasks(previousTasks)
+      void fetchTasks()
+    }
+  }, [fetchTasks, tasks])
 
   useEffect(() => {
     void fetchTasks()
@@ -60,5 +92,6 @@ export function useTasks(projectId: number | null) {
     error,
     refreshTasks: fetchTasks,
     deleteTask,
+    updateTaskStatus,
   }
 }

@@ -6,6 +6,8 @@ export interface BoardColumnProps {
   column: BoardColumn
   tasks: Task[]
   members?: TaskCardMember[]
+  onTaskStatusChange: (taskId: number, status: string) => Promise<void> | void
+  canMoveTask?: (task: Task) => boolean
 }
 
 export { default } from './BoardColumn'
