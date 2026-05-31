@@ -14,7 +14,7 @@ export interface NavItem {
   slug?: string
   button?: {
     label: string
-    path: string
+    path?: string
   }
   isMembers?: boolean
   isBoard?: boolean
@@ -42,10 +42,8 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     label: 'Участники',
-    slug: '/members',
     button: {
       label: 'Добавить участника',
-      path: ROUTES.ADD_MEMBER,
     },
     icon: GroupIcon,
     isMembers: true,

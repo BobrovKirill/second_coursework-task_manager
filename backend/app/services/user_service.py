@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-
+from typing import Optional
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate, UserUpdate, UserRead
 
@@ -85,3 +85,23 @@ class UserService:
                 detail="Пользователь не найден"
             )
         await self.repository.delete(user)
+
+    async def search_users(self, email: Optional[str], full_name: Optional[str], project_id: Optional[int] = None) -> \
+    list[UserRead]:
+        if not email and not full_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Укажите хотя бы один параметр поиска"
+            )
+        users = await self.repository.search(email=email, full_name=full_name)
+
+        if project_id:
+            from app.repositories.project_member_repository import ProjectMemberRepository
+            member_repo = ProjectMemberRepository(self.repository.db)
+            result = []
+            for user in users:
+                if not await member_repo.is_member(project_id, user.id):
+                    result.append(user)
+            users = result
+
+        return [UserRead.model_validate(u) for u in users]

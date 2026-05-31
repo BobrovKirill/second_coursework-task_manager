@@ -242,26 +242,6 @@ function ProjectSettingsPage() {
     setLocalSpecialties(prev => prev.filter(s => s.id !== specialtyId))
   }
 
-  const handleAddMember = () => {
-    console.log('Добавление участника')
-  }
-
-  const handleRemoveMember = (memberId: number) => {
-    setRemovedMemberIds(prev => [...prev, memberId])
-    setLocalMembers(prev => prev.filter(m => m.user.id !== memberId))
-  }
-
-  const handleAssignRole = (memberId: number) => {
-    console.log('Назначение роли участнику', memberId)
-  }
-
-  const handleAssignSpecialty = (memberId: number, specialtyId: number | null) => {
-    setSpecialtyAssignments(prev => ({
-      ...prev,
-      [memberId]: specialtyId,
-    }))
-  }
-
   const handleSave = async () => {
     setIsSaving(true)
     setSaveError(null)
@@ -425,14 +405,10 @@ function ProjectSettingsPage() {
         {hasMembersAccess && (
           <>
             <MembersSettings
-              members={localMembers}
-              loading={membersLoading}
-              specialties={localSpecialties}
-              canAssignRole={canAssignRole}
-              onAddMember={handleAddMember}
-              onRemoveMember={handleRemoveMember}
-              onAssignRole={handleAssignRole}
-              onAssignSpecialty={handleAssignSpecialty}
+              projectId={projectId}
+              canAssignRole={true}
+              onAddMember={() => {}}
+              onAssignRole={() => {}}
             />
 
             <SpecialtiesSettings

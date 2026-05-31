@@ -9,13 +9,13 @@ from app.core.deps import get_current_user
 from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate, ProjectWithMembers, ProjectListItem
 from app.models.user import User
 from app.schemas.user import UserRead
-from app.schemas.project_member import MemberRoleAssign
+from app.schemas.project_member import MemberRoleAssign, MemberAdd
 from app.services.board_column_service import BoardColumnService
 from app.schemas.board_column import BoardColumnRead
 from app.schemas.board_column import BoardColumnUpdate
 from app.services.project_specialty_service import ProjectSpecialtyService
-from app.schemas.project_specialty import ProjectSpecialtyCreate, ProjectSpecialtyRead, ProjectSpecialtyUpdate, MemberSpecialtyAssign
-from app.schemas.project_member import ProjectMemberRead
+from app.schemas.project_specialty import ProjectSpecialtyCreate, ProjectSpecialtyRead, ProjectSpecialtyUpdate
+from app.schemas.project_member import ProjectMemberRead, MemberSpecialtyAssign
 from app.schemas.task import TaskCreate, TaskRead
 from app.services.task_service import TaskService
 from typing import Optional
@@ -104,15 +104,16 @@ async def delete_project(
     """Удалить проект"""
     await service.delete_project(project_id, current_user.id)
 
-@router.post("/{project_id}/members/{user_id}", response_model=UserRead)
+@router.post("/{project_id}/members/{user_id}", response_model=ProjectMemberRead)
 async def add_member(
     project_id: int,
     user_id: int,
+    data: MemberAdd,
     service: ProjectService = Depends(get_project_service),
     current_user: User = Depends(require_permission("manage_members"))
 ):
     """Добавить участника в проект"""
-    return await service.add_member(project_id, user_id, current_user.id)
+    return await service.add_member(project_id, user_id, current_user.id, data.role, data.specialty)
 
 @router.get("/{project_id}/members", response_model=List[ProjectMemberRead])
 async def get_members(
@@ -143,7 +144,7 @@ async def remove_member(
     """Удалить участника из проекта"""
     await service.remove_member(project_id, user_id, current_user.id)
 
-@router.put("/{project_id}/members/{user_id}/role", response_model=dict)
+@router.put("/{project_id}/members/{user_id}/role", response_model=ProjectMemberRead)
 async def assign_role(
     project_id: int,
     user_id: int,
@@ -151,8 +152,20 @@ async def assign_role(
     service: ProjectService = Depends(get_project_service),
     current_user: User = Depends(require_permission("assign_role"))
 ):
+
     """Назначить роль участнику"""
-    return await service.assign_role(project_id, user_id, data.role_name, current_user.id)
+    return await service.assign_role(project_id, user_id, data.role, current_user.id)
+
+@router.put("/{project_id}/members/{user_id}/specialty", response_model=ProjectMemberRead)
+async def assign_specialty(
+    project_id: int,
+    user_id: int,
+    data: MemberSpecialtyAssign,
+    service: ProjectService = Depends(get_project_service),
+    current_user: User = Depends(require_permission("manage_members"))
+):
+    """Назначить специализацию участнику"""
+    return await service.assign_specialty(project_id, user_id, data.specialty, current_user.id)
 
 @router.get("/{project_id}/columns", response_model=list[BoardColumnRead])
 async def get_project_columns(
@@ -261,19 +274,6 @@ async def delete_project_specialty(
 ):
     """Удалить специальность"""
     await service.delete_specialty(specialty_id, project_id, current_user.id)
-
-@router.put("/{project_id}/members/{user_id}/specialty", response_model=dict)
-async def assign_member_specialty(
-    project_id: int,
-    user_id: int,
-    data: MemberSpecialtyAssign,
-    service: ProjectSpecialtyService = Depends(get_specialty_service),
-    current_user: User = Depends(get_current_user)
-):
-    """Назначить специальность участнику"""
-    return await service.assign_specialty(
-        project_id, user_id, data.specialty_id, current_user.id
-    )
 
 @router.post("/{project_id}/icon", response_model=dict)
 async def upload_project_icon(

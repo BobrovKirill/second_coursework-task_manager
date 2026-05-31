@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import verify_password, hash_password
@@ -67,3 +67,28 @@ class UserRepository:
     async def delete(self, user: User) -> None:
         await self.db.delete(user)
         await self.db.commit()
+
+    async def search(self, email: Optional[str] = None, full_name: Optional[str] = None, limit: int = 10) -> list[User]:
+        conditions = []
+
+        if email:
+            conditions.append(User.email.ilike(f"%{email}%"))
+
+        if full_name:
+            parts = full_name.strip().split()
+            for part in parts:
+                conditions.append(
+                    or_(
+                        User.first_name.ilike(f"%{part}%"),
+                        User.last_name.ilike(f"%{part}%"),
+                        User.patronymic.ilike(f"%{part}%"),
+                    )
+                )
+
+        if not conditions:
+            return []
+
+        result = await self.db.execute(
+            select(User).where(or_(*conditions)).limit(limit)
+        )
+        return list(result.scalars().all())

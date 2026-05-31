@@ -1,18 +1,13 @@
 import type { ProjectListItem } from '../../types/project.ts'
 import type { ProjectListProps } from './index.ts'
-import AnnouncementIcon from '@mui/icons-material/Announcement'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import {
   CircularProgress,
-  IconButton,
-  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { useEffect, useState } from 'react'
@@ -20,8 +15,10 @@ import { useNavigate } from 'react-router-dom'
 import useApi from '../../hooks/useApi.ts'
 import { useProjectStore } from '../../store/useProjectsStory.ts'
 import { useUserStore } from '../../store/useUserStory.ts'
-import base from '../../styles/formBase.module.css'
+import liquidGlass from '../../styles/liquidGlass.module.css'
 import { getDescriptionRole } from '../../utils/roles.ts'
+import FieldRole from '../FiedRole/FieldRole.tsx'
+import FiledSpecialty from '../FiledSpecialty/FiledSpecialty.tsx'
 import styles from './style.module.css'
 
 function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
@@ -91,7 +88,7 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
                   const userRole = getDescriptionRole(member[project.id]?.role)
 
                   return (
-                    <li className={`${styles.projectItem} ${isActive ? styles.projectItemActive : ''}`} key={project.id} onClick={async event => handleProjectClick(event, project)}>
+                    <li className={`${liquidGlass.card} ${styles.projectItem} ${isActive ? styles.projectItemActive : ''}`} key={project.id} onClick={async event => handleProjectClick(event, project)}>
                       { Icon
                         ? (
                             <ListItemIcon sx={{ minWidth: 40 }}>
@@ -126,51 +123,19 @@ function ProfileProjects({ editMode = false, icon = null }: ProjectListProps) {
 
                       <div className={styles.projectItemFields}>
                         {userRole.title && userRole.descriptionList.length && (
-                          <TextField
-                            label="Роль и права на проекте"
-                            value={userRole.title}
-                            fullWidth
-                            className={`${base.field} ${styles.fullWidth}`}
-                            InputProps={{
-                              readOnly: true,
-                              endAdornment: (
-                                <InputAdornment position="end">
-                                  <Tooltip
-                                    title={(
-                                      <>
-                                        <div>Права пользователя:</div>
-                                        <ol style={{ paddingLeft: '20px', margin: '6px 0 0 0' }}>
-                                          {userRole.descriptionList.map((item, index) => (
-                                            <li key={index}>{item}</li>
-                                          ))}
-                                        </ol>
-                                      </>
-                                    )}
-                                    arrow
-                                    placement="top"
-                                  >
-                                    <IconButton edge="end" size="small" sx={{ color: 'text.secondary' }}>
-                                      <AnnouncementIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                </InputAdornment>
-                              ),
-                            }}
+                          <FieldRole
+                            value={member[project.id]?.role}
+                            readOnly={true}
+                            onChange={() => {}}
                           />
                         )}
 
                         {userSpecialty && (
-                          <TextField
-                            label="Должность на проекте"
-                            value={userSpecialty.name || 'отсутсвует'}
-                            fullWidth
-                            className={`${base.field} ${styles.fullWidth}`}
-                            InputProps={{
-                              readOnly: true,
-                              endAdornment: (
-                                <div className={styles.color} style={{ backgroundColor: userSpecialty.hex_color }} />
-                              ),
-                            }}
+                          <FiledSpecialty
+                            projectId={project.id}
+                            data={{ value: userSpecialty?.id, hexColor: userSpecialty?.hex_color } || { value: '' }}
+                            readOnly={true}
+                            onChange={() => {}}
                           />
                         )}
                       </div>

@@ -58,6 +58,15 @@ async def get_me(
 
     return result
 
+@router.get("/search", response_model=list[UserRead])
+async def search_users(
+    email: Optional[str] = None,
+    full_name: Optional[str] = None,
+    project_id: Optional[int] = None,
+    service: UserService = Depends(get_user_service),
+    current_user: User = Depends(get_current_user)
+):
+    return await service.search_users(email, full_name, project_id)
 
 @router.get("/{user_id}", response_model=UserRead)
 async def get_user(

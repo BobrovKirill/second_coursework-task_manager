@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.schemas.user import UserRead
 from datetime import datetime
 from typing import Optional
@@ -20,4 +20,18 @@ class ProjectMemberAdd(BaseModel):
     user_id: int
 
 class MemberRoleAssign(BaseModel):
-    role_name: str
+    role: str
+
+class MemberSpecialtyAssign(BaseModel):
+    specialty: Optional[int] = None
+
+class MemberAdd(BaseModel):
+    role: str = "executor"
+    specialty: Optional[int] = None
+
+    @field_validator('role')
+    @classmethod
+    def role_not_empty(cls, v):
+        if not v.strip():
+            raise ValueError('Роль обязательна')
+        return v

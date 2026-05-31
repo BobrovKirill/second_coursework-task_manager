@@ -9,25 +9,33 @@ from typing import List, Optional
 class ProjectMemberRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
-    
-    async def add_member(self, project_id: int, user_id: int) -> Optional[ProjectMember]:
-        """Добавить участника в проект"""
+
+    async def add_member(
+            self,
+            project_id: int,
+            user_id: int
+    ) -> Optional[ProjectMember]:
         stmt = select(ProjectMember).where(
             and_(
                 ProjectMember.project_id == project_id,
                 ProjectMember.user_id == user_id
             )
         )
+
         result = await self.db.execute(stmt)
         existing = result.scalar_one_or_none()
-        
+
         if existing:
             return existing
-        
-        member = ProjectMember(project_id=project_id, user_id=user_id)
+
+        member = ProjectMember(
+            project_id=project_id,
+            user_id=user_id
+        )
+
         self.db.add(member)
-        await self.db.commit()
-        await self.db.refresh(member)
+        await self.db.flush()
+
         return member
     
     async def remove_member(self, project_id: int, user_id: int) -> bool:

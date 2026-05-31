@@ -1,4 +1,5 @@
-import { Typography } from '@mui/material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material'
 import { useUserStore } from '../../store/useUserStory.ts'
 import liquidGlass from '../../styles/liquidGlass.module.css'
 import ProjectList from '../ProjectList/ProjectList.tsx'
@@ -9,10 +10,18 @@ function ProfileProjects() {
   const role = getRole()
 
   return (
-    <div className={`${liquidGlass.wrapper} ${styles.card}`}>
-      <Typography variant="h6" className={styles.sectionTitle}>Мои проекты</Typography>
-      <ProjectList editMode={role === 'admin'} />
-    </div>
+    <Accordion className={`${liquidGlass.wrapper} ${styles.card}`} defaultExpanded>
+      <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+        id="panel1-header"
+      >
+        <Typography variant="h6" className={styles.sectionTitle}>Мои проекты</Typography>
+      </AccordionSummary>
+
+      <AccordionDetails>
+        <ProjectList editMode={role === 'admin'} />
+      </AccordionDetails>
+    </Accordion>
   )
 }
 

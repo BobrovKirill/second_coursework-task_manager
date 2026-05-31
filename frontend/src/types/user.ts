@@ -1,6 +1,6 @@
 import type { EMPLOYEE_TYPES } from '../store/useUserStory.ts'
+import type { RoleNameType } from '../utils/roles.ts'
 
-export type RoleType = 'admin' | 'organizer' | 'executor' | 'analyst' | 'observer'
 type permissionsType = 'manage_members'
   | 'assign_role'
   | 'delete_project'
@@ -29,7 +29,7 @@ export interface User {
   employeeType?: EmployeeType
   avatar?: string
   projects: UserProject[]
-  role: RoleType
+  role: RoleNameType
   permissions: permissionsType[]
 }
 
@@ -60,8 +60,9 @@ export interface UserState {
   uploadAvatar: () => void
   setLastProjectId: (projectId: number | null) => void
   getLastProjectId: () => number | null
-  getRole: () => RoleType
+  getRole: () => RoleNameType
   getPermissions: () => string[]
+  removeLastProjectId: () => any
 }
 
 export interface UserAvatar {

@@ -1,7 +1,7 @@
 import type { User, UserAvatar, UserState } from '../types/user.ts'
 import { create } from 'zustand'
 import useApi from '../hooks/useApi'
-import { getStoredLastProjectId, saveLastProjectId } from '../utils/projectId.ts'
+import { deleteLastProjectId, getStoredLastProjectId, saveLastProjectId } from '../utils/projectId.ts'
 
 export const useUserStore = create<UserState>((set, get) => {
   const api = useApi()
@@ -70,6 +70,11 @@ export const useUserStore = create<UserState>((set, get) => {
     setLastProjectId: (projectId: number | null) => {
       saveLastProjectId(projectId)
       set({ lastProjectId: projectId })
+    },
+
+    removeLastProjectId: () => {
+      deleteLastProjectId()
+      set({ lastProjectId: null })
     },
 
     getLastProjectId: (): number | null => {

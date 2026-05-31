@@ -1,221 +1,177 @@
+import type { MembersSettingsProps } from '../../pages/ProjectSettingsPage'
 import type { ProjectMember } from '../../types/project'
-import type { ProjectSpecialty } from '../../types/projectSpecialty'
-import BadgeIcon from '@mui/icons-material/Badge'
-import DeleteIcon from '@mui/icons-material/Delete'
+import type { MemberType } from '../../utils/members.ts'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import PersonAddIcon from '@mui/icons-material/PersonAdd'
-import WorkOutlineIcon from '@mui/icons-material/WorkOutline'
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Avatar,
   Box,
   Button,
   CircularProgress,
-  IconButton,
-  Menu,
-  MenuItem,
-  Paper,
-  Tooltip,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import useApi from '../../hooks/useApi.ts'
+import { useMembersStore } from '../../store/useMemberStore.ts'
+import { useSpecialtiesStore } from '../../store/useSpecialtyStore.ts'
+import { useUserStore } from '../../store/useUserStory.ts'
+import liquidGlass from '../../styles/liquidGlass.module.css'
+import FieldRole from '../FiedRole/FieldRole.tsx'
+import FiledSpecialty from '../FiledSpecialty/FiledSpecialty.tsx'
+import MemberModal from '../MemberModal/MemberModal.tsx'
 import styles from './styles.module.css'
 
-interface MembersSettingsProps {
-  members: ProjectMember[]
-  loading: boolean
-  specialties: ProjectSpecialty[]
-  canAssignRole: boolean
-  onAddMember: () => void
-  onRemoveMember: (memberId: number) => void
-  onAssignRole: (memberId: number) => void
-  onAssignSpecialty: (memberId: number, specialtyId: number | null) => void
-}
+function MembersSettings({ projectId }: MembersSettingsProps) {
+  const { getMembers, fetchMembers, loading: membersLoading, addMember, updateMember, deleteMember } = useMembersStore()
+  const { getSpecialties, fetchSpecialties } = useSpecialtiesStore()
+  const api = useApi()
+  const { user, getRole } = useUserStore()
 
-function MembersSettings({
-  members,
-  loading,
-  specialties,
-  canAssignRole,
-  onAddMember,
-  onRemoveMember,
-  onAssignRole,
-  onAssignSpecialty,
-}: MembersSettingsProps) {
-  const [specialtyMenuAnchor, setSpecialtyMenuAnchor] = useState<null | HTMLElement>(null)
-  const [selectedMemberId, setSelectedMemberId] = useState<number | null>(null)
+  const members = getMembers(projectId)
+  const specialties = getSpecialties(projectId)
 
-  const handleMemberSpecialtyClick = (event: React.MouseEvent<HTMLElement>, memberId: number) => {
-    setSpecialtyMenuAnchor(event.currentTarget)
-    setSelectedMemberId(memberId)
-  }
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
 
-  const handleMemberSpecialtySelect = (specialtyId: number | null) => {
-    if (selectedMemberId !== null) {
-      onAssignSpecialty(selectedMemberId, specialtyId)
+  const isAdmin = getRole() === 'admin'
+
+  useEffect(() => {
+    if (members.length === 0) {
+      void fetchMembers(projectId)
     }
-    setSpecialtyMenuAnchor(null)
-    setSelectedMemberId(null)
+
+    if (specialties.length === 0) {
+      void fetchSpecialties(projectId)
+    }
+  }, [projectId])
+
+  async function handleRemoveMember(memberId: number) {
+    try {
+      await api.delete(`/projects/${projectId}/members/${memberId}`)
+      void deleteMember(projectId, memberId)
+    }
+    catch (e) {
+      console.error(e)
+    }
   }
 
-  const truncateUsername = (username: string, maxLength: number = 30) => {
+  const truncateUsername = (username: string, maxLength = 30) => {
     if (username.length <= maxLength)
       return username
     return `${username.substring(0, maxLength).trim()}...`
   }
 
+  async function handleUser(userId: number, field: 'role' | 'speciality', data: string) {
+    const value = field === 'role' ? data : data.value
+
+    try {
+      const updated: MemberType = await api.put(`/projects/${projectId}/members/${userId}/${field}`, { [field]: value || null })
+      await updateMember(projectId, updated)
+    }
+    catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <>
-      <Paper className={styles.section}>
-        <Box className={styles.sectionHeader}>
+      <Accordion className={liquidGlass.card} sx={{ marginBottom: '24px', padding: '24px 24px 32px' }}>
+        <AccordionSummary
+          expandIcon={<ExpandMoreIcon />}
+          id="panel1-header"
+        >
           <Typography variant="h6" className={styles.sectionTitle}>
-            Участники
+            Участников на проекте -
+            {' '}
+            {members.length ? `${members.length} ` : ''}
           </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<PersonAddIcon />}
-            onClick={onAddMember}
-            size="small"
-          >
-            Добавить участника
-          </Button>
-        </Box>
+        </AccordionSummary>
 
-        {loading
-          ? (
-              <Box className={styles.loadingContainer}>
-                <CircularProgress size={24} />
-              </Box>
-            )
-          : (
-              <Box className={styles.membersList}>
-                {members.map((member) => {
-                  const memberUser = member.user
-                  const memberSpecialty = member.specialty
+        <AccordionDetails>
+          <Box className={styles.sectionHeader}>
+            <Button variant="outlined" startIcon={<PersonAddIcon />} onClick={() => setIsAddMemberOpen(true)} size="small">
+              Добавить участника
+            </Button>
+          </Box>
 
-                  return (
-                    <Box
-                      key={memberUser.id}
-                      className={styles.memberItem}
-                      sx={{
-                        minHeight: 60,
-                        borderLeft: memberSpecialty
-                          ? `4px solid ${memberSpecialty.hex_color}`
-                          : '4px solid transparent',
-                        padding: '12px 16px',
-                      }}
-                    >
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography
-                          className={styles.memberName}
-                          title={memberUser.username}
-                        >
-                          {truncateUsername(memberUser.username)}
-                        </Typography>
-                        {memberSpecialty && (
-                          <Typography
-                            variant="caption"
+          {membersLoading
+            ? (
+                <Box className={styles.loadingContainer}>
+                  <CircularProgress size={24} />
+                </Box>
+              )
+            : (
+                <Box className={styles.membersList}>
+                  {members.length === 0
+                    ? (
+                        <Box className={styles.emptyState}>
+                          <Typography variant="body2" color="text.secondary">Нет участников</Typography>
+                        </Box>
+                      )
+                    : members.map((item: ProjectMember) => {
+                        const memberUser = item.member
+                        const memberSpecialty = item.specialty
+
+                        return (
+                          <Box
+                            key={memberUser.id}
+                            className={styles.memberItem}
                             sx={{
-                              color: 'text.secondary',
-                              fontSize: '0.75rem',
-                              display: 'block',
-                              mt: 0.25,
+                              borderLeft: memberSpecialty
+                                ? `4px solid ${memberSpecialty.hex_color}`
+                                : '4px solid transparent',
                             }}
                           >
-                            {memberSpecialty.name}
-                          </Typography>
-                        )}
-                        {member.role && (
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: 'primary.main',
-                              fontSize: '0.7rem',
-                              display: 'block',
-                              mt: 0.25,
-                              fontWeight: 500,
-                            }}
-                          >
-                            {member.role}
-                          </Typography>
-                        )}
-                      </Box>
+                            <Typography className={styles.memberName} title={memberUser?.username || ''}>
+                              {truncateUsername(memberUser?.username)}
+                            </Typography>
 
-                      <Box className={styles.memberActions}>
-                        {canAssignRole && (
-                          <Tooltip title="Роль" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => onAssignRole(memberUser.id)}
-                              className={styles.actionButton}
-                            >
-                              <BadgeIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
+                            <Box sx={{ display: 'flex', gap: 2 }}>
+                              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                                <FieldRole
+                                  value={item?.role || ''}
+                                  readOnly={!isAdmin}
+                                  onChange={async role => handleUser(memberUser.id, 'role', role)}
+                                />
 
-                        <Tooltip title="Специальность" arrow>
-                          <IconButton
-                            size="small"
-                            onClick={e => handleMemberSpecialtyClick(e, memberUser.id)}
-                            className={styles.actionButton}
-                          >
-                            <WorkOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                                <FiledSpecialty
+                                  projectId={projectId}
+                                  data={{ value: memberSpecialty?.id } || { value: '' }}
+                                  readOnly={!isAdmin}
+                                  onChange={async specialty => handleUser(memberUser.id, 'specialty', specialty)}
+                                />
+                              </Box>
 
-                        <Tooltip title="Удалить участника" arrow>
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => onRemoveMember(memberUser.id)}
-                            className={styles.actionButton}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </Box>
-                  )
-                })}
-                {members.length === 0 && (
-                  <Box className={styles.emptyState}>
-                    <Typography variant="body2" color="text.secondary">
-                      Нет участников
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            )}
-      </Paper>
+                              <Box className={styles.Avatar}>
+                                <Avatar
+                                  src={memberUser.avatar ?? undefined}
+                                  sx={{ width: 100, height: 100, bgcolor: 'rgba(0,120,255,0.12)', color: 'rgba(0,120,255,0.8)' }}
+                                />
+                              </Box>
+                            </Box>
 
-      <Menu
-        anchorEl={specialtyMenuAnchor}
-        open={Boolean(specialtyMenuAnchor)}
-        onClose={() => {
-          setSpecialtyMenuAnchor(null)
-          setSelectedMemberId(null)
-        }}
-      >
-        <MenuItem onClick={() => handleMemberSpecialtySelect(null)}>
-          <Typography color="text.secondary">Без специальности</Typography>
-        </MenuItem>
-        {specialties.map(specialty => (
-          <MenuItem
-            key={specialty.id}
-            onClick={() => handleMemberSpecialtySelect(specialty.id)}
-          >
-            <Box
-              sx={{
-                width: 16,
-                height: 16,
-                borderRadius: '50%',
-                backgroundColor: specialty.hex_color,
-                marginRight: 1,
-                border: '1px solid rgba(0,0,0,0.2)',
-              }}
-            />
-            {specialty.name}
-          </MenuItem>
-        ))}
-      </Menu>
+                            {(isAdmin && (memberUser.id !== user.id)) && (
+                              <Button size="small" color="error" className={styles.deleteButton} onClick={async () => handleRemoveMember(memberUser.id)}>
+                                Удалить из проекта
+                              </Button>
+                            )}
+                          </Box>
+
+                        )
+                      })}
+                </Box>
+              )}
+        </AccordionDetails>
+      </Accordion>
+
+      <MemberModal
+        projectId={projectId}
+        open={isAddMemberOpen}
+        onClose={() => setIsAddMemberOpen(false)}
+        onAdded={() => {}}
+      />
     </>
   )
 }

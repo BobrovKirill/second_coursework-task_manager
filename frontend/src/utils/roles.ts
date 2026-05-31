@@ -1,11 +1,25 @@
-import type { RoleType } from '../types/user.ts'
+export type RoleNameType = 'admin' | 'organizer' | 'executor' | 'analyst' | 'observer'
+
+export interface RoleType {
+  name: RoleNameType
+  description?: string
+  id?: number
+}
 
 interface UserRoleInfo {
   title: string
   descriptionList: string[]
 }
 
-const USER_ROLES: Record<RoleType, UserRoleInfo> = {
+export interface RoleState {
+  roles: RoleType[]
+  loading: boolean
+
+  fetchRoles: () => Promise<RoleType[]>
+  getRoles: () => RoleType[]
+}
+
+const USER_ROLES: Record<RoleNameType, UserRoleInfo> = {
   admin: {
     title: 'Администратор',
     descriptionList: [
@@ -13,6 +27,7 @@ const USER_ROLES: Record<RoleType, UserRoleInfo> = {
       'Менять роль и права пользователей',
       'Создавать / удалять / редактировать проекты',
       'Создавать / удалять / редактировать задачи',
+      'комментировать',
       'Назначать / снимать пользователя с задачи',
       'Изменять статус / тип / дедлайн задачи',
       'Доступ к аналитике',
@@ -23,6 +38,7 @@ const USER_ROLES: Record<RoleType, UserRoleInfo> = {
     descriptionList: [
       'Создавать / удалять / редактировать проекты',
       'Создавать / удалять / редактировать задачи',
+      'комментировать',
       'Назначать / снимать пользователя с задачи',
       'Изменять статус / тип / дедлайн задачи',
     ],
@@ -30,13 +46,15 @@ const USER_ROLES: Record<RoleType, UserRoleInfo> = {
   executor: {
     title: 'Исполнитель',
     descriptionList: [
-      'Создавать / редактировать задачи',
+      'Создавать / редактировать свои задачи',
+      'комментировать',
     ],
   },
   analyst: {
     title: 'Аналитик',
     descriptionList: [
-      'Создавать / удалять / редактировать задачи',
+      'Создавать / удалять / редактировать свои задачи',
+      'комментировать',
       'Доступ к аналитике',
     ],
   },
@@ -49,7 +67,7 @@ const USER_ROLES: Record<RoleType, UserRoleInfo> = {
   },
 } as const
 
-export function getDescriptionRole(roleKey: RoleType | undefined): UserRoleInfo {
+export function getDescriptionRole(roleKey: RoleNameType | undefined): UserRoleInfo {
   if (!roleKey || !(roleKey in USER_ROLES)) {
     return {
       title: '',

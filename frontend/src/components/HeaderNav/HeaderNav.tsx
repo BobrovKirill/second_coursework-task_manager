@@ -14,19 +14,27 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { useMembersStore } from '../../store/useMemberStore.ts'
 import { useUserStore } from '../../store/useUserStory.ts'
 import CreateProjectModal from '../CreateProjectModal/index.ts'
 import CollapsibleSection from '../HeaderNavCollaps/HeaderNavCollaps.tsx'
+import MemberModal from '../MemberModal/MemberModal.tsx'
 import { DRAWER_WIDTH, NAV_ITEMS } from './index.ts'
 
 function HeaderNav({ open, onClose }: NavDrawerProps) {
+  const { addMember } = useMembersStore()
   const navigate = useNavigate()
   const location = useLocation()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const { getLastProjectId } = useUserStore()
+  const { getLastProjectId, removeLastProjectId } = useUserStore()
   const lastProjectId = getLastProjectId()
+  const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
 
   function handleNavClick(path: string) {
+    if (path === '/') {
+      removeLastProjectId()
+    }
+
     navigate(path)
     onClose()
   }
@@ -119,6 +127,7 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
                   item={item}
                   onNavigate={handleNavClick}
                   onCreateProject={() => setIsCreateModalOpen(true)}
+                  onAddMember={() => setIsAddMemberOpen(true)}
                 />
               )
             ))}
@@ -132,6 +141,13 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
         onSuccess={() => {
         // чета добавить можно
         }}
+      />
+
+      <MemberModal
+        projectId={lastProjectId!}
+        open={isAddMemberOpen}
+        onClose={() => setIsAddMemberOpen(false)}
+        onAdded={() => { addMember(getLastProjectId()) }}
       />
     </>
   )

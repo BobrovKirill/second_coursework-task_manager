@@ -4,15 +4,19 @@ import ProfileProjects from '../../components/ProfileProjects/ProfileProjects.ts
 import ProfileTasks from '../../components/ProfileTasks/ProfileTasks.tsx'
 import ProfileUser from '../../components/ProfileUser/ProfileUser.tsx'
 import { ROUTES } from '../../constants/routes.ts'
+import { useUserStore } from '../../store/useUserStory.ts'
 import base from '../../styles/formBase.module.css'
 import { removeToken } from '../../utils/cookie.ts'
 import styles from './style.module.css'
 
 function ProfilePage() {
   const navigate = useNavigate()
+  const { removeLastProjectId } = useUserStore()
 
   function handleLogout() {
     removeToken()
+    removeLastProjectId()
+
     navigate(ROUTES.AUTH)
   }
 

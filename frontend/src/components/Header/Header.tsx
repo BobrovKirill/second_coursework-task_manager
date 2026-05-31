@@ -134,6 +134,7 @@ function Header() {
             <IconButton
               color="inherit"
               aria-label="settings"
+              disabled={!lastProjectId}
               onClick={handleSettingsClick}
             >
               <Settings />

@@ -15,23 +15,22 @@ import {
 } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import useApi from '../../hooks/useApi.ts'
+import { useMembersStore } from '../../store/useMemberStore.ts'
 import { useProjectStore } from '../../store/useProjectsStory.ts'
 import { useUserStore } from '../../store/useUserStory'
 
-function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSectionProps) {
+function CollapsibleSection({ item, onNavigate, onCreateProject, onAddMember }: CollapsibleSectionProps) {
+  const { getMembers, fetchMembers, loading } = useMembersStore()
   const [open, setOpen] = useState(false)
   const [items, setItems] = useState([])
-  const [loading, setLoading] = useState(false)
+  const [loadingProject, setLoadingProject] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const api = useApi()
   const location = useLocation()
-  const { getLastProjectId } = useUserStore()
+  const { getLastProjectId, getRole } = useUserStore()
   const { getProjects, fetchProjects } = useProjectStore()
-
-  const isProjectPage = location.pathname.match(/\/projects\/\d+(\/|$)/)
-
   const projectId = getLastProjectId()
+
+  const isAdmin = getRole() === 'admin'
 
   useEffect(() => {
     if (item.isMembers) {
@@ -43,29 +42,37 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
 
   async function handleToggle() {
     if (item.isMembers) {
-      if (!isProjectPage || !projectId) {
+      if (!projectId) {
         return
       }
 
-      if (!open && !items.length) {
-        setLoading(true)
-        setError(null)
-        try {
-          const data = await api.get(`/projects/${projectId}/members`)
-          setItems(data)
+      const currentMembers = getMembers(projectId)
+
+      if (!open) {
+        if (currentMembers.length === 0) {
+          setLoadingProject(true)
+          try {
+            await fetchMembers(projectId)
+            const freshMembers = getMembers(projectId)
+            setItems(freshMembers)
+          }
+          catch (err) {
+            setError('Не удалось загрузить участников')
+            console.error(err)
+          }
+          finally {
+            setLoadingProject(false)
+          }
         }
-        catch (err) {
-          setError('Не удалось загрузить участников')
-          console.error(err)
-        }
-        finally {
-          setLoading(false)
+        else {
+          setItems(currentMembers)
         }
       }
     }
     else {
+      // твой код для проектов (оставляем как есть)
       if (!open && !items.length) {
-        setLoading(true)
+        setLoadingProject(true)
         setError(null)
         try {
           const projects = getProjects()
@@ -77,15 +84,15 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
           console.error(err)
         }
         finally {
-          setLoading(false)
+          setLoadingProject(false)
         }
       }
     }
 
-    setOpen(p => !p)
+    setOpen(prev => !prev)
   }
 
-  const isDisabled = item.isMembers && !isProjectPage
+  const isDisabled = item.isMembers && !projectId
 
   return (
     <>
@@ -113,7 +120,7 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
 
       <Collapse in={open} timeout="auto" unmountOnExit>
         <List disablePadding>
-          {loading
+          {loadingProject
             ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
                   <CircularProgress size={24} />
@@ -130,7 +137,7 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
               : items.length === 0
                 ? (
                     <Box sx={{ px: 2, py: 1 }}>
-                      <Typography color="text.secondary" variant="body2">
+                      <Typography color="text.secondary" variant="body2" sx={{ textAlign: 'center' }}>
                         {item.isMembers ? 'Нет участников' : 'Нет элементов'}
                       </Typography>
                     </Box>
@@ -152,8 +159,8 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
                               <PersonIcon fontSize="small" />
                             </ListItemIcon>
                             <ListItemText
-                              primary={listItem.username}
-                              secondary={listItem.email}
+                              primary={listItem.member.firstName || listItem.member.lastName ? `${listItem.member.firstName} ${listItem.member.lastName}` : listItem.member.username}
+                              secondary={listItem.member.email}
                             />
                           </ListItemButton>
                         )
@@ -187,17 +194,17 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
                 if (item.slug === '/projects') {
                   onCreateProject?.() // модалка для проекта
                 }
-                else {
-                  onNavigate(item.button.path)
+                else if (item.isMembers) {
+                  onAddMember?.()
                 }
               }}
-              disabled={item.isMembers && !isProjectPage}
+              disabled={item.isMembers && (!isAdmin || !projectId)}
               sx={{
                 borderRadius: '12px',
                 mx: 1,
                 mb: 0.5,
                 pl: 4,
-                opacity: (item.isMembers && !isProjectPage) ? 0.5 : 1,
+                opacity: (item.isMembers && !projectId) ? 0.5 : 1,
               }}
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
@@ -206,7 +213,7 @@ function CollapsibleSection({ item, onNavigate, onCreateProject }: CollapsibleSe
               <ListItemText
                 primary={item.button.label}
                 primaryTypographyProps={{
-                  color: (item.isMembers && !isProjectPage) ? 'text.disabled' : 'primary',
+                  color: (item.isMembers && !projectId) ? 'text.disabled' : 'primary',
                 }}
               />
             </ListItemButton>
