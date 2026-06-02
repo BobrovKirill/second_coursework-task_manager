@@ -50,10 +50,14 @@ function ProjectBoardPage() {
     void fetchUser()
   }, [currentProjectId, fetchUser, hasInvalidProjectId, setLastProjectId])
 
-  const taskMembers = members.map(member => ({
-    id: member.user.id,
-    name: member.user.username || member.user.email,
-  }))
+  const taskMembers = members.map((member) => {
+    const user = member.user ?? member.member
+
+    return {
+      id: user.id,
+      name: user.username ?? user.email,
+    }
+  })
 
   const columnsWithStatuses = useMemo(
     () => getTaskColumns(boardColumns),

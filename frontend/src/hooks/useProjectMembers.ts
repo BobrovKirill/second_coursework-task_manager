@@ -1,12 +1,38 @@
 import type { ProjectMember } from '../types/project'
+import type { User } from '../types/user'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import useApi from './useApi'
+
+interface ProjectMemberResponse {
+  project_id: number
+  joined_at: string
+  specialty: ProjectMember['specialty']
+  role: string | null
+  member?: User
+  user?: User
+}
+
+function normalizeProjectMember(member: ProjectMemberResponse): ProjectMember {
+  const user = member.user ?? member.member
+
+  if (user === undefined) {
+    throw new Error('Не удалось определить пользователя проекта')
+  }
+
+  return {
+    project_id: member.project_id,
+    joined_at: member.joined_at,
+    specialty: member.specialty,
+    role: member.role,
+    member: user,
+    user,
+  }
+}
 
 export function useProjectMembers(projectId: number | null) {
   const [members, setMembers] = useState<ProjectMember[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-
   const apiRef = useRef(useApi())
 
   const hasInvalidProjectId = projectId === null || Number.isNaN(projectId)
@@ -22,16 +48,11 @@ export function useProjectMembers(projectId: number | null) {
     setError(null)
 
     try {
-      const data = await apiRef.current.get(`/projects/${projectId}/members`)
+      const data = (await apiRef.current.get(
+        `/projects/${projectId}/members`,
+      )) as ProjectMemberResponse[]
 
-      const mappedData = Array.isArray(data)
-        ? data.map((item: any) => ({
-            ...item,
-            user: item.member,
-          }))
-        : []
-
-      setMembers(mappedData as ProjectMember[])
+      setMembers(data.map(normalizeProjectMember))
     }
     catch (err) {
       setError(err as Error)
@@ -46,16 +67,13 @@ export function useProjectMembers(projectId: number | null) {
       throw new Error('Не удалось определить проект')
     }
 
-    const newMember = await apiRef.current.post(
+    const newMember = (await apiRef.current.post(
       `/projects/${projectId}/members/${userId}`,
-    )
+    )) as ProjectMemberResponse
 
-    const mappedMember = {
-      ...newMember,
-      user: newMember.member,
-    }
+    const mappedMember = normalizeProjectMember(newMember)
 
-    setMembers(prev => [...prev, mappedMember as ProjectMember])
+    setMembers(prev => [...prev, mappedMember])
 
     return mappedMember
   }, [hasInvalidProjectId, projectId])
@@ -67,7 +85,11 @@ export function useProjectMembers(projectId: number | null) {
 
     await apiRef.current.delete(`/projects/${projectId}/members/${userId}`)
 
-    setMembers(prev => prev.filter(member => member.user.id !== userId))
+    setMembers(prev => prev.filter((member) => {
+      const user = member.user ?? member.member
+
+      return user.id !== userId
+    }))
   }, [hasInvalidProjectId, projectId])
 
   const assignSpecialty = useCallback(async (userId: number, specialtyId: number | null) => {

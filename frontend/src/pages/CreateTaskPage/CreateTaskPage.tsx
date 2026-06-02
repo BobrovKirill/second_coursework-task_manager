@@ -1,9 +1,11 @@
 import type { FormEvent } from 'react'
 import type { TaskFormValues } from '../../components/TaskForm'
+import type { Task } from '../../types/task'
 import { Container, Typography } from '@mui/material'
 import { useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import TaskForm from '../../components/TaskForm'
+import TaskPendingAttachments from '../../components/TaskPendingAttachments'
 import { getTaskColumns } from '../../constants/board'
 import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
@@ -26,10 +28,14 @@ function CreateTaskPage() {
     [boardColumns],
   )
 
-  const taskFormMembers = members.map(member => ({
-    id: member.user.id,
-    name: member.user.username || member.user.email,
-  }))
+  const taskFormMembers = members.map((member) => {
+    const user = member.user ?? member.member
+
+    return {
+      id: user.id,
+      name: user.username ?? user.email,
+    }
+  })
 
   const [form, setForm] = useState<TaskFormValues>({
     title: '',
@@ -43,6 +49,7 @@ function CreateTaskPage() {
 
   const [error, setError] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
   const handleBackToBoard = () => {
     if (hasInvalidProjectId) {
@@ -60,6 +67,23 @@ function CreateTaskPage() {
     }))
   }
 
+  const handleAddPendingFiles = (files: File[]) => {
+    setPendingFiles(prev => [...prev, ...files])
+  }
+
+  const handleRemovePendingFile = (fileIndex: number) => {
+    setPendingFiles(prev => prev.filter((_, index) => index !== fileIndex))
+  }
+
+  const uploadPendingFiles = async (createdTaskId: number) => {
+    for (const file of pendingFiles) {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      await apiRef.current.post(`/tasks/${createdTaskId}/attachments/`, formData)
+    }
+  }
+
   const createTask = async () => {
     if (hasInvalidProjectId || isSaving) {
       return
@@ -75,7 +99,7 @@ function CreateTaskPage() {
     setError(null)
 
     try {
-      await apiRef.current.post(`/projects/${currentProjectId}/tasks`, {
+      const createdTask = (await apiRef.current.post(`/projects/${currentProjectId}/tasks`, {
         title,
         description: form.description.trim() || null,
         status: form.status,
@@ -83,12 +107,16 @@ function CreateTaskPage() {
         priority: Number(form.priority),
         deadline: form.deadline || null,
         assigneeId: form.assigneeId !== '' ? Number(form.assigneeId) : null,
-      })
+      })) as Task
+
+      if (pendingFiles.length > 0) {
+        await uploadPendingFiles(createdTask.id)
+      }
 
       void navigate(ROUTES.PROJECT_BOARD(currentProjectId))
     }
     catch {
-      setError('Не удалось создать задачу')
+      setError('Не удалось создать задачу или загрузить вложения')
     }
     finally {
       setIsSaving(false)
@@ -122,6 +150,14 @@ function CreateTaskPage() {
       <TaskForm
         title="Создать задачу"
         description={error ?? 'Заполните поля и сохраните новую задачу.'}
+        extraContent={(
+          <TaskPendingAttachments
+            files={pendingFiles}
+            disabled={isSaving}
+            onAddFiles={handleAddPendingFiles}
+            onRemoveFile={handleRemovePendingFile}
+          />
+        )}
         values={form}
         columns={taskColumns}
         members={taskFormMembers}

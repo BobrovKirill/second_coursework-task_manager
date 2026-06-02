@@ -7,6 +7,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 from alembic import context
 from app.models.task import Task
+from app.models.task_attachment import TaskAttachment
 
 # Добавляем backend/ в path чтобы импорты работали
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

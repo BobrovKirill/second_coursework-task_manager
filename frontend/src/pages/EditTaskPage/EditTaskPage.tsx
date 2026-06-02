@@ -14,6 +14,7 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import TaskAttachments from '../../components/TaskAttachments'
 import { PRIORITY_MAP, TASK_TYPE_LABELS } from '../../components/TaskCard'
 import TaskControlPanel from '../../components/TaskControlPanel'
 import TaskDesk from '../../components/TaskDesk'
@@ -23,6 +24,7 @@ import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
 import { useBoardColumns } from '../../hooks/useBoardColumn'
 import { useProjectMembers } from '../../hooks/useProjectMembers'
+import { useTaskAttachments } from '../../hooks/useTaskAttachments'
 import { useUserStore } from '../../store/useUserStory'
 
 function getTaskFormValues(task: Task): TaskFormValues {
@@ -86,15 +88,30 @@ function EditTaskPage() {
   const { members } = useProjectMembers(currentProjectId)
 
   const { columns: boardColumns } = useBoardColumns(currentProjectId)
+
+  const {
+    attachments,
+    loading: attachmentsLoading,
+    uploading: attachmentUploading,
+    deletingAttachmentId,
+    error: attachmentsError,
+    uploadAttachment,
+    deleteAttachment,
+  } = useTaskAttachments(hasInvalidTaskId ? null : currentTaskId)
+
   const taskColumns = useMemo(
     () => getTaskColumns(boardColumns),
     [boardColumns],
   )
 
-  const taskFormMembers = members.map(member => ({
-    id: member.user.id,
-    name: member.user.username || member.user.email,
-  }))
+  const taskFormMembers = members.map((member) => {
+    const user = member.user ?? member.member
+
+    return {
+      id: user.id,
+      name: user.username ?? user.email,
+    }
+  })
 
   const [task, setTask] = useState<Task | null>(null)
   const [form, setForm] = useState<TaskFormValues>({
@@ -314,6 +331,18 @@ function EditTaskPage() {
             <TaskForm
               title="Редактировать задачу"
               description={error ?? 'Измените поля и сохраните задачу.'}
+              extraContent={(
+                <TaskAttachments
+                  attachments={attachments}
+                  loading={attachmentsLoading}
+                  uploading={attachmentUploading}
+                  deletingAttachmentId={deletingAttachmentId}
+                  error={attachmentsError}
+                  canManage={shouldShowEditButton}
+                  onUpload={uploadAttachment}
+                  onDelete={deleteAttachment}
+                />
+              )}
               values={form}
               columns={taskColumns}
               members={taskFormMembers}
@@ -332,6 +361,12 @@ function EditTaskPage() {
                 error={error}
                 canDelete={shouldShowDeleteButton}
                 onDeleteTask={handleOpenDeleteDialog}
+              />
+
+              <TaskAttachments
+                attachments={attachments}
+                loading={attachmentsLoading}
+                error={attachmentsError}
               />
 
               <TaskControlPanel

@@ -1,4 +1,4 @@
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import type { TaskStatus } from '../../types/task'
 import {
   Button,
@@ -23,6 +23,7 @@ export interface TaskFormValues {
 interface TaskFormProps {
   title: string
   description?: string
+  extraContent?: ReactNode
   values: TaskFormValues
   columns: Array<{
     status: TaskStatus
@@ -57,6 +58,7 @@ const priorityOptions = [
 function TaskForm({
   title,
   description,
+  extraContent,
   values,
   columns,
   members = [],
@@ -102,6 +104,8 @@ function TaskForm({
           />
         </Stack>
       </Paper>
+
+      {extraContent}
 
       <div className={styles.controlsBlock}>
         <Typography variant="subtitle1" className={styles.controlsTitle}>
@@ -188,7 +192,7 @@ function TaskForm({
           </Button>
 
           {onCancel !== undefined && (
-            <Button variant="outlined" onClick={onCancel}>
+            <Button type="button" variant="outlined" onClick={onCancel}>
               {cancelLabel}
             </Button>
           )}

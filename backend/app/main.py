@@ -10,6 +10,7 @@ from app.api.v1.columns import router as columns
 from app.core.database import AsyncSessionLocal
 from app.core.seeds import seed_roles_and_permissions
 from app.api.v1.roles import router as roles
+from app.api.v1.task_attachments import router as task_attachments
 
 # Создание приложения
 app = FastAPI(
@@ -34,6 +35,7 @@ app.include_router(users, prefix=settings.API_V1_PREFIX)
 app.include_router(auth, prefix=settings.API_V1_PREFIX)
 app.include_router(projects, prefix=settings.API_V1_PREFIX)
 app.include_router(tasks, prefix=settings.API_V1_PREFIX)
+app.include_router(task_attachments, prefix=settings.API_V1_PREFIX)
 app.include_router(columns, prefix=settings.API_V1_PREFIX)
 app.include_router(roles, prefix=settings.API_V1_PREFIX)
 

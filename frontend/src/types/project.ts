@@ -23,6 +23,7 @@ export interface ProjectMember {
   specialty: ProjectSpecialty | null
   role: string | null
   member: User
+  user?: User
 }
 export interface ProjectWithMembers extends Project {
   members: ProjectMember[]
