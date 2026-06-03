@@ -102,10 +102,10 @@ function TaskForm({
             placeholder="Подробно опишите задачу"
             fullWidth
           />
+
+          {extraContent}
         </Stack>
       </Paper>
-
-      {extraContent}
 
       <div className={styles.controlsBlock}>
         <Typography variant="subtitle1" className={styles.controlsTitle}>

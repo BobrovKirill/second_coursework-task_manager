@@ -361,12 +361,13 @@ function EditTaskPage() {
                 error={error}
                 canDelete={shouldShowDeleteButton}
                 onDeleteTask={handleOpenDeleteDialog}
-              />
-
-              <TaskAttachments
-                attachments={attachments}
-                loading={attachmentsLoading}
-                error={attachmentsError}
+                extraContent={(
+                  <TaskAttachments
+                    attachments={attachments}
+                    loading={attachmentsLoading}
+                    error={attachmentsError}
+                  />
+                )}
               />
 
               <TaskControlPanel

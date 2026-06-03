@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, DragEvent } from 'react'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import {
   Box,
@@ -7,7 +7,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 interface TaskPendingAttachmentsProps {
   files: File[]
@@ -35,9 +35,40 @@ function TaskPendingAttachments({
   onRemoveFile,
 }: TaskPendingAttachmentsProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [isDragActive, setIsDragActive] = useState(false)
 
   const handleChooseFile = () => {
     fileInputRef.current?.click()
+  }
+
+  const handleAddFiles = (selectedFiles: File[]) => {
+    if (disabled || selectedFiles.length === 0) {
+      return
+    }
+
+    onAddFiles(selectedFiles)
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    if (disabled) {
+      return
+    }
+
+    setIsDragActive(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragActive(false)
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragActive(false)
+
+    const selectedFiles = [...event.dataTransfer.files]
+    handleAddFiles(selectedFiles)
   }
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -47,19 +78,26 @@ function TaskPendingAttachments({
       return
     }
 
-    onAddFiles(selectedFiles)
+    handleAddFiles(selectedFiles)
     event.currentTarget.value = ''
   }
 
   return (
     <Paper
       elevation={0}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       sx={{
         width: '100%',
         p: 3,
         borderRadius: 4,
-        border: '1px solid rgba(255, 255, 255, 0.55)',
-        background: 'rgba(255, 255, 255, 0.72)',
+        border: isDragActive
+          ? '1px dashed rgba(25, 118, 210, 0.75)'
+          : '1px solid rgba(255, 255, 255, 0.55)',
+        background: isDragActive
+          ? 'rgba(25, 118, 210, 0.08)'
+          : 'rgba(255, 255, 255, 0.72)',
         boxShadow: '0 10px 28px rgba(31, 38, 135, 0.12)',
         backdropFilter: 'blur(10px)',
       }}
@@ -100,7 +138,7 @@ function TaskPendingAttachments({
 
         {files.length === 0 && (
           <Typography color="text.secondary">
-            Пока нет файлов для загрузки. Вы можете добавить их, нажав кнопку "Добавить файл".
+            Пока нет файлов. Вы можете добавить их, перетащив в эту область или выбрав через кнопку "Добавить файл".
           </Typography>
         )}
 

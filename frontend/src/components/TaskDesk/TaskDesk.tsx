@@ -2,7 +2,14 @@ import type { TaskDeskProps } from './index'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import { IconButton, Paper, Stack, Typography } from '@mui/material'
 
-function TaskDesk({ title, description, error, canDelete, onDeleteTask }: TaskDeskProps) {
+function TaskDesk({
+  title,
+  description,
+  error,
+  canDelete,
+  onDeleteTask,
+  extraContent,
+}: TaskDeskProps) {
   return (
     <Paper
       elevation={0}
@@ -63,6 +70,7 @@ function TaskDesk({ title, description, error, canDelete, onDeleteTask }: TaskDe
         >
           {description ?? 'Описание не заполнено'}
         </Typography>
+        {extraContent}
       </Stack>
     </Paper>
   )

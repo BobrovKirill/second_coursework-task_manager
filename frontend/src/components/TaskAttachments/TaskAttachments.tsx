@@ -1,4 +1,4 @@
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, DragEvent } from 'react'
 import type { TaskAttachment } from '../../types/taskAttachment'
 import AttachFileIcon from '@mui/icons-material/AttachFile'
 import ImageIcon from '@mui/icons-material/Image'
@@ -57,23 +57,54 @@ function TaskAttachments({
 
   const [previewAttachment, setPreviewAttachment] = useState<TaskAttachment | null>(null)
   const [downloadingAttachmentId, setDownloadingAttachmentId] = useState<number | null>(null)
+  const [isDragActive, setIsDragActive] = useState(false)
 
   const handleChooseFile = () => {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0]
-
-    if (file === undefined || onUpload === undefined) {
+  const handleUploadFiles = (selectedFiles: File[]) => {
+    if (!canManage || uploading || onUpload === undefined || selectedFiles.length === 0) {
       return
     }
 
+    const upload = onUpload
+
+    void (async () => {
+      for (const file of selectedFiles) {
+        await upload(file)
+      }
+    })()
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+
+    if (!canManage || uploading || onUpload === undefined) {
+      return
+    }
+
+    setIsDragActive(true)
+  }
+
+  const handleDragLeave = () => {
+    setIsDragActive(false)
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragActive(false)
+
+    const selectedFiles = [...event.dataTransfer.files]
+    handleUploadFiles(selectedFiles)
+  }
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = [...(event.currentTarget.files ?? [])]
     const input = event.currentTarget
 
-    void onUpload(file).finally(() => {
-      input.value = ''
-    })
+    handleUploadFiles(selectedFiles)
+    input.value = ''
   }
 
   const handleClosePreview = () => {
@@ -112,12 +143,19 @@ function TaskAttachments({
   return (
     <Paper
       elevation={0}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
       sx={{
         width: '100%',
         p: 3,
         borderRadius: 4,
-        border: '1px solid rgba(255, 255, 255, 0.55)',
-        background: 'rgba(255, 255, 255, 0.72)',
+        border: isDragActive
+          ? '1px dashed rgba(25, 118, 210, 0.75)'
+          : '1px solid rgba(255, 255, 255, 0.55)',
+        background: isDragActive
+          ? 'rgba(25, 118, 210, 0.08)'
+          : 'rgba(255, 255, 255, 0.72)',
         boxShadow: '0 10px 28px rgba(31, 38, 135, 0.12)',
         backdropFilter: 'blur(10px)',
       }}
@@ -141,6 +179,7 @@ function TaskAttachments({
                 hidden
                 ref={fileInputRef}
                 type="file"
+                multiple
                 accept="image/jpeg,image/png,image/webp,application/pdf,text/plain,.doc,.docx,.xls,.xlsx"
                 onChange={handleFileChange}
               />
@@ -158,6 +197,12 @@ function TaskAttachments({
             </>
           )}
         </Box>
+
+        {canManage && onUpload !== undefined && (
+          <Typography variant="body2" color="text.secondary">
+            Можно добавить файлы кнопкой или перетащить их в этот блок.
+          </Typography>
+        )}
 
         {loading && (
           <Box>
