@@ -1,18 +1,22 @@
-import type { AuthView, SingErrorFetchTypes, SingFormTypes } from '../Sign'
+import type { SingFormTypes } from '../Sign'
+import type { SignUpProps } from './index'
 import { Visibility, VisibilityOff } from '@mui/icons-material'
 import { Box, Button, CircularProgress, IconButton, InputAdornment, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
-import useApi, {type ApiErrorResponse} from '../../hooks/useApi.ts'
+import useApi, { type ApiErrorResponse } from '../../hooks/useApi.ts'
 import base from '../../styles/formBase.module.css'
 import { useAlertModal } from '../AlertModal'
 import Sign, { validateSignUpForm } from '../Sign'
+import {
+  SIGN_UP_ENDPOINT,
+  SIGN_UP_ERROR_MESSAGE,
+  SIGN_UP_INITIAL_FORM,
+  SIGN_UP_SUCCESS_INFO,
+  SIGN_UP_TEXT,
+} from './index'
 
-interface SignUpProps {
-  onNavigate: (view: AuthView) => void
-}
-
-function SignUp({ onNavigate }: SignUpProps) {
-  const [form, setForm] = useState<SingFormTypes>({ username: '', email: '', password: '', confirm: '' })
+function SignUp({ onNavigate, onInfo }: SignUpProps) {
+  const [form, setForm] = useState<SingFormTypes>(SIGN_UP_INITIAL_FORM)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Partial<typeof form>>({})
@@ -33,12 +37,11 @@ function SignUp({ onNavigate }: SignUpProps) {
 
     setLoading(true)
     try {
-      await api.post('/users', form)
-      showAlertModal({ title: 'Поздравляем!', message: 'Регистрация прошла успешно!', type: 'success' })
-      onNavigate('signIn')
+      await api.post(SIGN_UP_ENDPOINT, form)
+      onInfo(SIGN_UP_SUCCESS_INFO)
     }
     catch (error: ApiErrorResponse | unknown) {
-      const message = error?.message || 'Что-то пошло не так...'
+      const message = (error as ApiErrorResponse)?.message || SIGN_UP_ERROR_MESSAGE
       showAlertModal({ title: 'Ошибка', message })
     }
     finally {
@@ -48,8 +51,8 @@ function SignUp({ onNavigate }: SignUpProps) {
 
   return (
     <Sign>
-      <Typography variant="h5" className={base.title}>Регистрация</Typography>
-      <Typography className={base.subtitle}>Создайте аккаунт</Typography>
+      <Typography variant="h5" className={base.title}>{SIGN_UP_TEXT.title}</Typography>
+      <Typography className={base.subtitle}>{SIGN_UP_TEXT.subtitle}</Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
@@ -108,15 +111,15 @@ function SignUp({ onNavigate }: SignUpProps) {
           disabled={loading}
           className={base.submitButton}
         >
-          {loading ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : 'Создать аккаунт'}
+          {loading ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : SIGN_UP_TEXT.submitLabel}
         </Button>
       </Box>
 
       <p className={base.footer}>
-        Уже есть аккаунт?
+        {SIGN_UP_TEXT.footerText}
         {' '}
         <span className={base.link} onClick={() => onNavigate('signIn')}>
-          Войти
+          {SIGN_UP_TEXT.signInLabel}
         </span>
       </p>
     </Sign>

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,7 +18,7 @@ class TaskAttachmentRepository:
         )
         return list(result.scalars().all())
 
-    async def get_by_id(self, attachment_id: int) -> TaskAttachment | None:
+    async def get_by_id(self, attachment_id: int) -> Optional[TaskAttachment]:
         result = await self.db.execute(
             select(TaskAttachment).where(TaskAttachment.id == attachment_id),
         )

@@ -67,3 +67,18 @@ class TaskRead(TaskBase):
         populate_by_name=True,
         from_attributes=True,
     )
+
+
+class UserTaskRead(BaseModel):
+    id: int
+    title: str
+    project_id: int
+    project_name: str
+    status: str
+    priority: int
+    deadline: Optional[date] = None
+
+    model_config = ConfigDict(
+        alias_generator=camelize,
+        populate_by_name=True,
+    )

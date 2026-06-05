@@ -1,4 +1,9 @@
+from pathlib import Path
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+BACKEND_DIR = Path(__file__).resolve().parents[2]
 
 # Класс который подтянет настройки из env файла, содержит настройки по дефолту
 class Settings(BaseSettings):
@@ -22,6 +27,22 @@ class Settings(BaseSettings):
     # CORS
     BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173"]
 
+    # Frontend
+    FRONTEND_URL: str = "http://localhost:5173"
+
+    # Email
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 1025
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: str = "no-reply@task-manager.local"
+    SMTP_FROM_NAME: str = "Task Manager"
+    SMTP_USE_TLS: bool = False
+    SMTP_USE_SSL: bool = False
+    EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS: int = 24
+    PASSWORD_RESET_TOKEN_EXPIRE_MINUTES: int = 60
+    PROJECT_INVITATION_TOKEN_EXPIRE_DAYS: int = 7
+
     # S3-хранилище
     MINIO_ENDPOINT: str = "http://localhost:9000"
     MINIO_ACCESS_KEY: str
@@ -33,7 +54,7 @@ class Settings(BaseSettings):
         return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=BACKEND_DIR / ".env",
         case_sensitive=True
     )
 

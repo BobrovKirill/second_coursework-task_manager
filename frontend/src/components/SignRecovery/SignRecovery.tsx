@@ -1,26 +1,32 @@
-import type { AuthView } from '../Sign'
+import type { ApiErrorResponse } from '../../hooks/useApi'
+import {
+  PASSWORD_RESET_REQUEST_ENDPOINT,
+  SIGN_RECOVERY_ERROR_MESSAGE,
+  SIGN_RECOVERY_SUCCESS_INFO,
+  SIGN_RECOVERY_TEXT,
+  type SignRecoveryProps,
+  validateRecoveryEmail,
+} from './index'
 import { ArrowBack } from '@mui/icons-material'
-import { Alert, Box, Button, CircularProgress, TextField, Typography } from '@mui/material'
+import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material'
 import { useState } from 'react'
+import useApi from '../../hooks/useApi'
 import base from '../../styles/formBase.module.css'
+import { useAlertModal } from '../AlertModal'
 import Sign from '../Sign'
 import styles from './style.module.css'
 
-interface SignRecoveryProps {
-  onNavigate: (view: AuthView) => void
-}
-
-function SignRecovery({ onNavigate }: SignRecoveryProps) {
+function SignRecovery({ onNavigate, onInfo }: SignRecoveryProps) {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
+  const api = useApi()
+  const { showAlertModal } = useAlertModal()
 
   const validate = () => {
-    if (!email) { setError('Введите email'); return false }
-    if (!/\S[^\s@]*@\S+\.\S+/.test(email)) { setError('Некорректный email'); return false }
-    setError('')
-    return true
+    const message = validateRecoveryEmail(email)
+    setError(message)
+    return !message
   }
 
   const handleSubmit = async () => {
@@ -28,9 +34,12 @@ function SignRecovery({ onNavigate }: SignRecoveryProps) {
       return
     setLoading(true)
     try {
-      // TODO: вызов store/api
-      await new Promise(r => setTimeout(r, 1000))
-      setSent(true)
+      await api.post(PASSWORD_RESET_REQUEST_ENDPOINT, { email })
+      onInfo(SIGN_RECOVERY_SUCCESS_INFO)
+    }
+    catch (requestError: ApiErrorResponse | unknown) {
+      const message = (requestError as ApiErrorResponse)?.message || SIGN_RECOVERY_ERROR_MESSAGE
+      showAlertModal({ title: 'Ошибка', message })
     }
     finally {
       setLoading(false)
@@ -44,38 +53,30 @@ function SignRecovery({ onNavigate }: SignRecoveryProps) {
         <span>Назад</span>
       </button>
 
-      <Typography variant="h5" className={base.title}>Восстановление пароля</Typography>
-      <Typography className={base.subtitle}>Отправим ссылку для сброса на ваш email</Typography>
+      <Typography variant="h5" className={base.title}>{SIGN_RECOVERY_TEXT.title}</Typography>
+      <Typography className={base.subtitle}>{SIGN_RECOVERY_TEXT.subtitle}</Typography>
 
-      {sent
-        ? (
-            <Alert severity="success" className={styles.successAlert}>
-              Письмо отправлено. Проверьте почту.
-            </Alert>
-          )
-        : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Email"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                error={!!error}
-                helperText={error}
-                fullWidth
-                className={base.field}
-              />
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={handleSubmit}
-                disabled={loading}
-                className={base.submitButton}
-              >
-                {loading ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : 'Отправить ссылку'}
-              </Button>
-            </Box>
-          )}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <TextField
+          label="Email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          error={!!error}
+          helperText={error}
+          fullWidth
+          className={base.field}
+        />
+        <Button
+          fullWidth
+          variant="contained"
+          onClick={handleSubmit}
+          disabled={loading}
+          className={base.submitButton}
+        >
+          {loading ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : SIGN_RECOVERY_TEXT.submitLabel}
+        </Button>
+      </Box>
     </Sign>
   )
 }

@@ -19,6 +19,8 @@ from app.models.project import Project
 from app.models.board_column import BoardColumn
 from app.models.project_member import ProjectMember
 from app.models.project_specialty import ProjectSpecialty
+from app.models.email_action_token import EmailActionToken
+from app.models.project_invitation import ProjectInvitation
 print("DB URL:", settings.database_url)
 
 config = context.config

@@ -1,12 +1,24 @@
 from fastapi import HTTPException, status
+from datetime import datetime, timedelta
 from typing import Optional
+from urllib.parse import urlencode
+
+from app.core.config import settings
+from app.core.security import generate_action_token, hash_action_token
+from app.repositories.email_action_token_repository import EmailActionTokenRepository
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserCreate, UserUpdate, UserRead
+from app.services.email_service import EmailDeliveryError, EmailService
+
+
+EMAIL_VERIFICATION_PURPOSE = "verify_email"
 
 
 class UserService:
     def __init__(self, repository: UserRepository):
         self.repository = repository
+        self.email_token_repository = EmailActionTokenRepository(repository.db)
+        self.email_service = EmailService()
 
     async def create_user(self, user_data: UserCreate) -> UserRead:
         """Создание пользователя с проверкой уникальности"""
@@ -24,7 +36,15 @@ class UserService:
                 detail="Username уже занят"
             )
 
-        user = await self.repository.create(user_data)
+        user = await self.repository.create(user_data.model_copy(update={"is_active": False}))
+        try:
+            await self._send_email_verification(user.id, user.email)
+        except EmailDeliveryError:
+            await self.repository.delete(user)
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Не удалось отправить письмо подтверждения. Проверьте, что Mailpit запущен",
+            )
         return UserRead.model_validate(user)
 
     async def get_user(self, user_id: int) -> UserRead:
@@ -105,3 +125,32 @@ class UserService:
             users = result
 
         return [UserRead.model_validate(u) for u in users]
+
+    async def _send_email_verification(self, user_id: int, email: str) -> None:
+        await self.email_token_repository.expire_user_tokens(
+            user_id=user_id,
+            purpose=EMAIL_VERIFICATION_PURPOSE,
+        )
+
+        token = generate_action_token()
+        token_hash = hash_action_token(token)
+        expires_at = datetime.utcnow() + timedelta(
+            hours=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS,
+        )
+
+        await self.email_token_repository.create(
+            user_id=user_id,
+            purpose=EMAIL_VERIFICATION_PURPOSE,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
+
+        verification_url = self._build_email_verification_url(token)
+        self.email_service.send_email_verification(
+            to_email=email,
+            verification_url=verification_url,
+        )
+
+    def _build_email_verification_url(self, token: str) -> str:
+        query = urlencode({"token": token})
+        return f"{settings.FRONTEND_URL.rstrip('/')}/auth/verify-email?{query}"

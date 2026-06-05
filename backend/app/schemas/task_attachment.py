@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -8,7 +9,7 @@ class TaskAttachmentRead(BaseModel):
 
     id: int
     task_id: int = Field(alias="taskId")
-    uploader_id: int | None = Field(alias="uploaderId")
+    uploader_id: Optional[int] = Field(alias="uploaderId")
     original_name: str = Field(alias="originalName")
     file_url: str = Field(alias="fileUrl")
     content_type: str = Field(alias="contentType")

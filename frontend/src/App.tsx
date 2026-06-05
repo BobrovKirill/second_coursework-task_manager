@@ -25,7 +25,7 @@ function App() {
       <div className={styles.app}>
         <BrowserRouter>
           <Routes>
-            <Route path={ROUTES.AUTH} element={<AuthPage />} />
+            <Route path={ROUTES.AUTH_PATTERN} element={<AuthPage />} />
 
             <Route element={<Layout />}>
               <Route path={ROUTES.MAIN} element={<MainPage />} />

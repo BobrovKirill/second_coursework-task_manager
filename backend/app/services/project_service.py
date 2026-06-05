@@ -153,22 +153,6 @@ class ProjectService:
                 detail="Ошибка при добавлении участника"
             )
 
-    # async def remove_member(self, project_id: int, user_id: int, current_user_id: int):
-    #
-    #     project = await self.project_repo.get_by_id(project_id)
-    #
-    #     if not project:
-    #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Project not found")
-    #
-    #     if user_id == project.owner_id:
-    #         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot remove project owner")
-    #
-    #     result = await self.member_repo.remove_member(project_id, user_id)
-    #     if not result:
-    #         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
-    #
-    #     return {"message": "Member removed successfully"}
-
     async def remove_member(self, project_id: int, user_id: int, current_user_id: int) -> bool:
         """Удалить участника"""
         await self.db.execute(

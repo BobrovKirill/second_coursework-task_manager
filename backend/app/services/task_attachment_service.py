@@ -1,4 +1,5 @@
 import uuid
+from typing import Optional
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy import select
@@ -63,7 +64,7 @@ class TaskAttachmentService:
 
         return project
 
-    async def _get_user_role(self, project_id: int, user_id: int) -> str | None:
+    async def _get_user_role(self, project_id: int, user_id: int) -> Optional[str]:
         role_result = await self.db.execute(
             select(Role.name)
             .join(ProjectMemberRole, ProjectMemberRole.role_id == Role.id)

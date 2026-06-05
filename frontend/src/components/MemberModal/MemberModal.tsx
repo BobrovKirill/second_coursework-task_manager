@@ -17,7 +17,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
-import useApi from '../../hooks/useApi'
+import useApi, { type ApiErrorResponse } from '../../hooks/useApi'
 import { useMembersStore } from '../../store/useMemberStore.ts'
 import { useUserStore } from '../../store/useUserStory.ts'
 import liquidGlass from '../../styles/liquidGlass.module.css'
@@ -33,14 +33,32 @@ interface AddMemberModalProps {
   onAdded?: () => void
 }
 
+interface SpecialtyFormValue {
+  value: string | number
+  hexColor: string | null
+}
+
+interface InviteForm {
+  email: string
+  role: string
+  specialty: SpecialtyFormValue
+}
+
+const EMPTY_SPECIALTY: SpecialtyFormValue = { value: '', hexColor: null }
+const DEFAULT_INVITE_FORM: InviteForm = {
+  email: '',
+  role: 'executor',
+  specialty: EMPTY_SPECIALTY,
+}
+
 function MemberModal({ projectId, open, onClose, onAdded }: AddMemberModalProps) {
   const api = useApi()
   const { showAlertModal } = useAlertModal()
   const { getRole } = useUserStore()
-  const { addMember } = useMembersStore()
+  const { addMember, fetchMembers } = useMembersStore()
 
   const [tab, setTab] = useState(0)
-  const [results, setResults] = useState([])
+  const [results, setResults] = useState<User[]>([])
   const [searching, setSearching] = useState(false)
   const [newMembers, setMewMembers] = useState<Record<number, any>>({})
   const [email, setEmail] = useState('')
@@ -49,7 +67,29 @@ function MemberModal({ projectId, open, onClose, onAdded }: AddMemberModalProps)
 
   const isAdmin = getRole() === 'admin'
 
-  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteForm, setInviteForm] = useState<InviteForm>(DEFAULT_INVITE_FORM)
+  const [inviteErrors, setInviteErrors] = useState<{ email?: string, role?: string }>({})
+  const [inviteLoading, setInviteLoading] = useState(false)
+
+  const getRoleValue = (role: unknown) => {
+    if (typeof role === 'string') {
+      return role
+    }
+
+    if (role && typeof role === 'object' && 'name' in role) {
+      return String(role.name)
+    }
+
+    return ''
+  }
+
+  const getSpecialtyValue = (specialty: SpecialtyFormValue) => {
+    if (!specialty.value) {
+      return null
+    }
+
+    return Number(specialty.value)
+  }
 
   async function handleSearch() {
     setSearching(true)
@@ -73,15 +113,18 @@ function MemberModal({ projectId, open, onClose, onAdded }: AddMemberModalProps)
     }
   }
 
-  function updateForm(userId: number, field: 'role' | 'speciality', value: string) {
+  function updateForm(userId: number, field: 'role' | 'specialty', value: string | SpecialtyFormValue) {
     setMewMembers(prev => ({ ...prev, [userId]: { ...prev[userId], [field]: value } }))
   }
 
-  async function handleAdd(user) {
+  async function handleAdd(user: User) {
     try {
       setAddUserLoading(true)
-      const form = newMembers[user.id]
-      const newMember = await api.post(`/projects/${projectId}/members/${user.id}`, { role: form.role, specialty: form.specialty?.value || null })
+      const form = newMembers[user.id] || { role: 'executor', specialty: EMPTY_SPECIALTY }
+      const newMember = await api.post(`/projects/${projectId}/members/${user.id}`, {
+        role: form.role,
+        specialty: getSpecialtyValue(form.specialty),
+      })
       setResults(prev => prev.filter(u => u.id !== user.id))
       showAlertModal({ title: 'Пользователь', message: 'добавлен в команду проекта', type: 'success' })
       setEmail('')
@@ -90,23 +133,68 @@ function MemberModal({ projectId, open, onClose, onAdded }: AddMemberModalProps)
       addMember(projectId, newMember)
       onAdded?.()
     }
-    catch (error) {
-      console.log(error)
-      showAlertModal({ title: 'Ошибка', message: error.message })
+    catch (error: ApiErrorResponse | unknown) {
+      const message = (error as ApiErrorResponse)?.message || 'Не удалось добавить пользователя'
+      showAlertModal({ title: 'Ошибка', message })
     }
     finally {
       setAddUserLoading(false)
     }
   }
 
-  function handleInvite() {
-    // заглушка
-    console.log('invite', inviteEmail)
+  const updateInviteForm = (field: keyof InviteForm, value: string | SpecialtyFormValue) => {
+    setInviteForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  async function handleInvite() {
+    const errors: { email?: string, role?: string } = {}
+
+    if (!inviteForm.email) {
+      errors.email = 'Введите email'
+    }
+    else if (!/\S[^\s@]*@\S+\.\S+/.test(inviteForm.email)) {
+      errors.email = 'Некорректный email'
+    }
+
+    if (!inviteForm.role) {
+      errors.role = 'Выберите роль'
+    }
+
+    setInviteErrors(errors)
+    if (Object.keys(errors).length > 0) {
+      return
+    }
+
+    setInviteLoading(true)
+    try {
+      const response = await api.post(`/projects/${projectId}/invitations`, {
+        email: inviteForm.email,
+        role: inviteForm.role,
+        specialty: getSpecialtyValue(inviteForm.specialty),
+      })
+
+      showAlertModal({
+        title: 'Приглашение',
+        message: response.message || 'Приглашение отправлено',
+        type: 'success',
+      })
+      setInviteForm(DEFAULT_INVITE_FORM)
+      setInviteErrors({})
+      void fetchMembers(projectId)
+    }
+    catch (error: ApiErrorResponse | unknown) {
+      const message = (error as ApiErrorResponse)?.message || 'Не удалось отправить приглашение'
+      showAlertModal({ title: 'Ошибка', message })
+    }
+    finally {
+      setInviteLoading(false)
+    }
   }
 
   function handleClose() {
     setResults([])
-    setInviteEmail('')
+    setInviteForm(DEFAULT_INVITE_FORM)
+    setInviteErrors({})
     setTab(0)
     onClose()
   }
@@ -197,7 +285,7 @@ function MemberModal({ projectId, open, onClose, onAdded }: AddMemberModalProps)
                         <FieldRole
                           value={newMembers?.[user.id]?.role || ''}
                           readOnly={!isAdmin}
-                          onChange={role => updateForm(user.id, 'role', role)}
+                          onChange={role => updateForm(user.id, 'role', getRoleValue(role))}
                         />
 
                         <FiledSpecialty
@@ -233,17 +321,38 @@ function MemberModal({ projectId, open, onClose, onAdded }: AddMemberModalProps)
             <TextField
               label="Email"
               type="email"
-              value={inviteEmail}
-              onChange={e => setInviteEmail(e.target.value)}
+              value={inviteForm.email}
+              onChange={e => updateInviteForm('email', e.target.value)}
+              error={!!inviteErrors.email}
+              helperText={inviteErrors.email}
               fullWidth
             />
+
+            <FieldRole
+              value={inviteForm.role}
+              readOnly={!isAdmin}
+              onChange={role => updateInviteForm('role', getRoleValue(role))}
+            />
+            {inviteErrors.role && (
+              <Typography variant="caption" color="error">
+                {inviteErrors.role}
+              </Typography>
+            )}
+
+            <FiledSpecialty
+              projectId={projectId}
+              data={inviteForm.specialty}
+              readOnly={!isAdmin}
+              onChange={specialty => updateInviteForm('specialty', specialty)}
+            />
+
             <Button
               variant="contained"
               onClick={handleInvite}
-              disabled={!inviteEmail}
+              disabled={inviteLoading || !inviteForm.email}
               className={styles.submitButton}
             >
-              Отправить приглашение
+              {inviteLoading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Отправить приглашение'}
             </Button>
           </Box>
         )}

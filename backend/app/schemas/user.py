@@ -42,9 +42,9 @@ class UserCreate(UserBase):
 # Схема для обновления, наследуюем общий класс
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
-    username: str | None = Field(None, min_length=3, max_length=50)
-    password: str | None = Field(None, min_length=8, max_length=100)
-    is_active: bool | None = None
+    username: Optional[str] = Field(None, min_length=3, max_length=50)
+    password: Optional[str] = Field(None, min_length=8, max_length=100)
+    is_active: Optional[bool] = None
     first_name: Optional[str] = Field(None, max_length=100)
     last_name: Optional[str] = Field(None, max_length=100)
     patronymic: Optional[str] = Field(None, max_length=100)

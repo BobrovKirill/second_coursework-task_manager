@@ -1,8 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
-from sqlalchemy import delete, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.project import Project
 from app.models.task import Task
 from app.schemas.task import TaskCreate, TaskUpdate
 
@@ -41,6 +42,19 @@ class TaskRepository:
         )
         result = await self.db.execute(stmt)
         return list(result.scalars().all())
+
+    async def get_user_tasks(self, user_id: int) -> List[Tuple[Task, str]]:
+        stmt = (
+            select(Task, Project.name)
+            .join(Project, Project.id == Task.project_id)
+            .where(
+                Task.assignee_id == user_id,
+                Project.is_active.is_(True),
+            )
+            .order_by(Task.created_at.desc())
+        )
+        result = await self.db.execute(stmt)
+        return [(task, project_name) for task, project_name in result.all()]
 
     async def update(self, task: Task, data: TaskUpdate) -> Task:
         update_data = data.model_dump(exclude_unset=True, by_alias=False)

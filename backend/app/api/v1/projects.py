@@ -10,10 +10,13 @@ from app.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate, Proje
 from app.models.user import User
 from app.schemas.user import UserRead
 from app.schemas.project_member import MemberRoleAssign, MemberAdd
+from app.schemas.project_invitation import ProjectInvitationCreate
+from app.schemas.token import MessageResponse
 from app.services.board_column_service import BoardColumnService
 from app.schemas.board_column import BoardColumnRead
 from app.schemas.board_column import BoardColumnUpdate
 from app.services.project_specialty_service import ProjectSpecialtyService
+from app.services.project_invitation_service import ProjectInvitationService
 from app.schemas.project_specialty import ProjectSpecialtyCreate, ProjectSpecialtyRead, ProjectSpecialtyUpdate
 from app.schemas.project_member import ProjectMemberRead, MemberSpecialtyAssign
 from app.schemas.task import TaskCreate, TaskRead
@@ -38,6 +41,9 @@ async def get_specialty_service(db: AsyncSession = Depends(get_db)):
 
 async def get_task_service(db: AsyncSession = Depends(get_db)):
     return TaskService(db)
+
+async def get_invitation_service(db: AsyncSession = Depends(get_db)):
+    return ProjectInvitationService(db)
 
 @router.post("/", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 async def create_project(
@@ -114,6 +120,16 @@ async def add_member(
 ):
     """Добавить участника в проект"""
     return await service.add_member(project_id, user_id, current_user.id, data.role, data.specialty)
+
+@router.post("/{project_id}/invitations", response_model=MessageResponse)
+async def create_project_invitation(
+    project_id: int,
+    data: ProjectInvitationCreate,
+    service: ProjectInvitationService = Depends(get_invitation_service),
+    current_user: User = Depends(require_permission("manage_members"))
+):
+    """Пригласить пользователя в проект по email"""
+    return await service.create_invitation(project_id, data, current_user.id)
 
 @router.get("/{project_id}/members", response_model=List[ProjectMemberRead])
 async def get_members(

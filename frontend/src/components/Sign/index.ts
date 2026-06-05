@@ -2,7 +2,13 @@ import type { ReactNode } from 'react'
 
 export { default } from './Sign.tsx'
 
-export type AuthView = 'signIn' | 'signUp' | 'signRecovery'
+export type AuthView = 'signIn' | 'signUp' | 'signRecovery' | 'signInfo'
+
+export interface SignInfoState {
+  title: string
+  message: string
+  actionLabel?: string
+}
 
 export interface SignModalProps {
   children: ReactNode
@@ -30,6 +36,11 @@ const rules: ValidationRule<SingFormTypes>[] = [
     field: 'username',
     check: v => !!v.trim(),
     message: 'Введите имя',
+  },
+  {
+    field: 'username',
+    check: v => v.trim().length >= 3,
+    message: 'Минимум 3 символа',
   },
   {
     field: 'email',

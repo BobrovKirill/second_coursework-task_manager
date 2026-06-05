@@ -1,5 +1,6 @@
 export const ROUTES = {
   AUTH: '/auth',
+  AUTH_PATTERN: '/auth/*',
   MAIN: '/',
   PROJECTS: '/projects',
   PROJECT_DETAIL: (id: number | string) => `/projects/${id}`,

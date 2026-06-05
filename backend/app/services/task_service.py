@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.repositories.project_member_repository import ProjectMemberRepository
 from app.repositories.project_repository import ProjectRepository
 from app.repositories.task_repository import TaskRepository
-from app.schemas.task import TaskCreate, TaskUpdate
+from app.schemas.task import TaskCreate, TaskUpdate, UserTaskRead
 
 
 class TaskService:
@@ -45,6 +45,22 @@ class TaskService:
             )
 
         return await self.task_repo.get_project_tasks(project_id)
+
+    async def get_user_tasks(self, current_user_id: int):
+        tasks = await self.task_repo.get_user_tasks(current_user_id)
+
+        return [
+            UserTaskRead(
+                id=task.id,
+                title=task.title,
+                project_id=task.project_id,
+                project_name=project_name,
+                status=task.status,
+                priority=task.priority,
+                deadline=task.deadline,
+            )
+            for task, project_name in tasks
+        ]
 
     async def get_task(self, task_id: int, current_user_id: int):
         task = await self.task_repo.get_by_id(task_id)
