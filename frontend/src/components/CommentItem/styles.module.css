@@ -1,0 +1,136 @@
+.commentItem {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.commentItem:last-child {
+  border-bottom: none;
+}
+
+.parentInfo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding-left: 48px;
+  cursor: pointer;
+  color: #1976d2;
+  transition: opacity 0.2s;
+}
+
+.parentInfo:hover {
+  opacity: 0.8;
+}
+
+.parentIcon {
+  font-size: 16px;
+}
+
+.parentText {
+  font-weight: 500;
+}
+
+.commentContent {
+  display: flex;
+  gap: 12px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  flex-shrink: 0;
+}
+
+.commentBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.commentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.authorInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.authorName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.authorEmail {
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 0.75rem;
+}
+
+.commentDate {
+  color: rgba(0, 0, 0, 0.4);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+.commentText {
+  color: #334155;
+  line-height: 1.6;
+  margin-bottom: 8px;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+.commentActions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.commentItem:hover .commentActions {
+  opacity: 1;
+}
+
+.actionButton {
+  padding: 4px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.actionButton:hover {
+  color: #1976d2;
+  background: rgba(25, 118, 210, 0.08);
+}
+
+.deleteButton:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.editForm {
+  margin: 8px 0;
+}
+
+.editField {
+  margin-bottom: 8px;
+}
+
+.editField :global(.MuiOutlinedInput-root) {
+  border-radius: 12px;
+}
+
+.editActions {
+  justify-content: flex-end;
+}
+
+.formWrapper {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}

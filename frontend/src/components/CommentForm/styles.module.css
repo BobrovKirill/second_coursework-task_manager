@@ -1,0 +1,87 @@
+.commentForm {
+  width: 100%;
+}
+
+.formField :global(.MuiOutlinedInput-root) {
+  border-radius: 12px;
+}
+
+.attachedFiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.fileChip {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 0.75rem;
+}
+
+.fileChip:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.fileChip :global(.MuiChip-deleteIcon) {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.fileChip :global(.MuiChip-deleteIcon):hover {
+  color: rgba(220, 38, 38, 0.8);
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 8px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.formActionsLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.formActionsRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.attachButton {
+  text-transform: none;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.6);
+  min-height: auto;
+  padding: 4px 8px;
+}
+
+.attachButton:hover {
+  background: rgba(25, 118, 210, 0.08);
+  color: #1976d2;
+}
+
+.formHint {
+  color: rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+.formButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.formButtons :global(.MuiButton-root) {
+  border-radius: 12px;
+  text-transform: none;
+}

@@ -42,3 +42,9 @@ class User(Base):
     project_memberships: Mapped[List["ProjectMember"]] = relationship(
         back_populates="member"
     )
+    
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        back_populates="author",
+        cascade="all, delete-orphan",
+    )

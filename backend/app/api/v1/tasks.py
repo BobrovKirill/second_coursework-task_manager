@@ -8,6 +8,8 @@ from app.core.deps import get_current_user
 from app.models.user import User
 from app.schemas.task import TaskRead, TaskUpdate, UserTaskRead
 from app.services.task_service import TaskService
+from app.schemas.comment import CommentCreate, CommentRead
+from app.services.comment_service import CommentService
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
@@ -15,6 +17,8 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 async def get_task_service(db: AsyncSession = Depends(get_db)):
     return TaskService(db)
 
+async def get_comment_service(db: AsyncSession = Depends(get_db)):
+    return CommentService(db)
 
 @router.get("/me", response_model=List[UserTaskRead])
 async def get_my_tasks(
@@ -50,3 +54,23 @@ async def delete_task(
     current_user: User = Depends(get_current_user),
 ):
     await service.delete_task(task_id, current_user.id)
+
+@router.get("/{task_id}/comments", response_model=List[CommentRead])
+async def get_task_comments(
+    task_id: int,
+    service: CommentService = Depends(get_comment_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Получить комментарии задачи"""
+    return await service.get_task_comments(task_id, current_user.id)
+
+
+@router.post("/{task_id}/comments", response_model=CommentRead, status_code=status.HTTP_201_CREATED)
+async def create_task_comment(
+    task_id: int,
+    data: CommentCreate,
+    service: CommentService = Depends(get_comment_service),
+    current_user: User = Depends(get_current_user),
+):
+    """Создать комментарий к задаче"""
+    return await service.create_comment(task_id, data, current_user.id)

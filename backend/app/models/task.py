@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Optional
 
 from sqlalchemy import Date, ForeignKey, Integer, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 
@@ -43,4 +43,10 @@ class Task(Base):
     updated_at: Mapped[datetime] = mapped_column(
         server_default=func.timezone("UTC", func.now()),
         onupdate=func.timezone("UTC", func.now()),
+    )
+
+    comments: Mapped[list["Comment"]] = relationship(
+        "Comment",
+        back_populates="task",
+        cascade="all, delete-orphan",
     )

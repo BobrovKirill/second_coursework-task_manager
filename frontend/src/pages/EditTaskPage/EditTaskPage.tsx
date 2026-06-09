@@ -19,6 +19,8 @@ import { PRIORITY_MAP, TASK_TYPE_LABELS } from '../../components/TaskCard'
 import TaskControlPanel from '../../components/TaskControlPanel'
 import TaskDesk from '../../components/TaskDesk'
 import TaskForm from '../../components/TaskForm'
+import TaskComments, { type TaskCommentsHandle } from '../../components/TaskComments'
+import CommentForm from '../../components/CommentForm/CommentForm'
 import { getTaskColumns } from '../../constants/board'
 import { ROUTES } from '../../constants/routes'
 import useApi from '../../hooks/useApi'
@@ -26,6 +28,8 @@ import { useBoardColumns } from '../../hooks/useBoardColumn'
 import { useProjectMembers } from '../../hooks/useProjectMembers'
 import { useTaskAttachments } from '../../hooks/useTaskAttachments'
 import { useUserStore } from '../../store/useUserStory'
+import type { Comment } from '../../types/comment'
+import styles from './styles.module.css'
 
 function getTaskFormValues(task: Task): TaskFormValues {
   return {
@@ -131,6 +135,14 @@ function EditTaskPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const [isCommentFormVisible, setIsCommentFormVisible] = useState(false)
+  const [commentFormMode, setCommentFormMode] = useState<'new' | 'reply' | 'edit'>('new')
+  const [replyToComment, setReplyToComment] = useState<Comment | null>(null)
+  const [editingComment, setEditingComment] = useState<Comment | null>(null)
+  const [isSendingComment, setIsSendingComment] = useState(false)
+
+  const commentsRef = useRef<TaskCommentsHandle | null>(null)
+
   const handleBackToBoard = () => {
     if (hasInvalidProjectId) {
       void navigate(ROUTES.PROJECTS)
@@ -177,6 +189,13 @@ function EditTaskPage() {
     void loadTask()
   }, [currentTaskId, hasInvalidTaskId])
 
+  const canModerateComments = useMemo(() => {
+    if (!currentUser?.role) return false
+    return currentUser.role === 'admin' || 
+          currentUser.role === 'organizer' || 
+          task?.creatorId === currentUser.id
+  }, [currentUser?.role, currentUser?.id, task?.creatorId])
+
   const handleFormChange = (field: keyof TaskFormValues, value: string) => {
     setForm(prev => ({
       ...prev,
@@ -192,6 +211,7 @@ function EditTaskPage() {
     setForm(getTaskFormValues(task))
     setError(null)
     setIsEditing(true)
+    handleCloseCommentForm()
   }
 
   const handleCancelEdit = () => {
@@ -278,6 +298,106 @@ function EditTaskPage() {
     void updateTask()
   }
 
+  const handleOpenNewCommentForm = () => {
+    setCommentFormMode('new')
+    setReplyToComment(null)
+    setEditingComment(null)
+    setIsCommentFormVisible(true)
+  }
+
+  const handleOpenReplyForm = (comment: Comment) => {
+    setCommentFormMode('reply')
+    setReplyToComment(comment)
+    setEditingComment(null)
+    setIsCommentFormVisible(true)
+  }
+
+  const handleOpenEditForm = (comment: Comment) => {
+    setCommentFormMode('edit')
+    setEditingComment(comment)
+    setReplyToComment(null)
+    setIsCommentFormVisible(true)
+  }
+
+  const handleCloseCommentForm = () => {
+    setIsCommentFormVisible(false)
+    setReplyToComment(null)
+    setEditingComment(null)
+  }
+
+  const handleSubmitComment = async (text: string, files: File[]) => {
+    if (!currentTaskId) return
+
+    if (!text && files.length === 0) return
+
+    setIsSendingComment(true)
+    try {
+      let commentId: number | undefined
+
+      if (commentFormMode === 'edit' && editingComment) {
+        await apiRef.current.put(`/comments/${editingComment.id}`, { 
+          text: text || '' 
+        })
+        commentId = editingComment.id
+      } else {
+        const body: { text: string; parentId?: number } = { 
+          text: text || '' 
+        }
+        
+        if (commentFormMode === 'reply' && replyToComment) {
+          body.parentId = replyToComment.id
+        }
+        
+        const newComment = await apiRef.current.post(`/tasks/${currentTaskId}/comments`, body) as Comment
+        commentId = newComment.id
+      }
+
+      if (files.length > 0 && commentId) {
+        const uploadPromises = files.map(async (file) => {
+          const formData = new FormData()
+          formData.append('file', file)
+          return apiRef.current.post(`/comments/${commentId}/attachments`, formData)
+        })
+        
+        await Promise.all(uploadPromises)
+      }
+      
+      handleCloseCommentForm()
+      setError(null)
+      
+      if (commentsRef.current?.refreshComments) {
+        await commentsRef.current.refreshComments()
+      }
+    } catch (err) {
+      console.error('Ошибка отправки комментария:', err)
+      setError('Не удалось отправить комментарий')
+    } finally {
+      setIsSendingComment(false)
+    }
+  }
+
+  const getCommentFormPlaceholder = () => {
+    switch (commentFormMode) {
+      case 'reply':
+        return `Ответить пользователю ${replyToComment?.author?.username ?? '...'}...`
+      case 'edit':
+        return 'Редактировать комментарий...'
+      default:
+        return 'Написать комментарий...'
+    }
+  }
+
+  const getCommentFormTitle = () => {
+    switch (commentFormMode) {
+      case 'reply':
+        return 'Ответ на комментарий'
+      case 'edit':
+        return 'Редактирование комментария'
+      default:
+        return 'Новый комментарий'
+    }
+  }
+
   if (hasInvalidProjectId || hasInvalidTaskId) {
     return (
       <Typography color="error">
@@ -288,17 +408,21 @@ function EditTaskPage() {
 
   if (isLoading) {
     return (
-      <Typography>
-        Загрузка задачи...
-      </Typography>
+      <Container maxWidth="lg" sx={{ py: 3, minHeight: 'calc(100vh - 120px)' }}>
+        <Typography>
+          Загрузка задачи...
+        </Typography>
+      </Container>
     )
   }
 
   if (task === null) {
     return (
-      <Typography color="error">
-        {error ?? 'Не удалось загрузить задачу'}
-      </Typography>
+      <Container maxWidth="lg" sx={{ py: 3, minHeight: 'calc(100vh - 120px)' }}>
+        <Typography color="error">
+          {error ?? 'Не удалось загрузить задачу'}
+        </Typography>
+      </Container>
     )
   }
 
@@ -321,9 +445,7 @@ function EditTaskPage() {
       sx={{
         py: 3,
         minHeight: 'calc(100vh - 120px)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
+        paddingBottom: '100px',
       }}
     >
       {isEditing
@@ -354,32 +476,89 @@ function EditTaskPage() {
             />
           )
         : (
-            <Stack spacing={2} sx={{ width: '100%' }}>
-              <TaskDesk
-                title={task.title}
-                description={task.description}
-                error={error}
-                canDelete={shouldShowDeleteButton}
-                onDeleteTask={handleOpenDeleteDialog}
-                extraContent={(
-                  <TaskAttachments
-                    attachments={attachments}
-                    loading={attachmentsLoading}
-                    error={attachmentsError}
-                  />
-                )}
-              />
+            <div className={styles.taskViewContainer}>
+              <div className={`${styles.contentWrapper} ${isCommentFormVisible ? styles.contentWrapperShifted : ''}`}>
+                <div className={styles.taskBlock}>
+                  <Stack spacing={2} sx={{ width: '100%' }}>
+                    <TaskDesk
+                      title={task.title}
+                      description={task.description}
+                      error={error}
+                      canDelete={shouldShowDeleteButton}
+                      onDeleteTask={handleOpenDeleteDialog}
+                      extraContent={(
+                        <TaskAttachments
+                          attachments={attachments}
+                          loading={attachmentsLoading}
+                          error={attachmentsError}
+                        />
+                      )}
+                    />
+                  </Stack>
+                </div>
 
-              <TaskControlPanel
-                statusLabel={statusLabel}
-                taskTypeLabel={taskTypeLabel}
-                priorityLabel={priorityLabel}
-                deadlineLabel={deadlineLabel}
-                assigneeName={assigneeName}
-                canEdit={shouldShowEditButton}
-                onEditTask={handleStartEdit}
-                onBackToBoard={handleBackToBoard}
-              />
+                <div className={styles.commentsSection}>
+                  <TaskComments
+                    ref={commentsRef}
+                    taskId={currentTaskId!}
+                    currentUserId={currentUser?.id ?? 0}
+                    onNewComment={handleOpenNewCommentForm}
+                    onReplyComment={handleOpenReplyForm}
+                    onEditComment={handleOpenEditForm}
+                    canModerateComments={canModerateComments}
+                  />
+                </div>
+              </div>
+
+              <div className={`${styles.commentFormPanel} ${isCommentFormVisible ? styles.commentFormPanelVisible : ''}`}>
+                <div className={styles.commentFormPanelHeader}>
+                  <Typography variant="h6" className={styles.commentFormTitle}>
+                    {getCommentFormTitle()}
+                  </Typography>
+                  <Button
+                    size="small"
+                    onClick={handleCloseCommentForm}
+                    className={styles.closeButton}
+                  >
+                    ✕
+                  </Button>
+                </div>
+                
+                <div className={styles.commentFormPanelContent}>
+                  {replyToComment && (
+                    <div className={styles.replyInfo}>
+                      <Typography variant="caption" color="text.secondary">
+                        В ответ на комментарий от {replyToComment.author?.username}
+                      </Typography>
+                      <Typography variant="body2" className={styles.replyText}>
+                        {replyToComment.text.slice(0, 100)}
+                        {replyToComment.text.length > 100 ? '...' : ''}
+                      </Typography>
+                    </div>
+                  )}
+
+                  <CommentForm
+                    onSubmit={(text, files) => void handleSubmitComment(text, files)}
+                    onCancel={handleCloseCommentForm}
+                    isSending={isSendingComment}
+                    placeholder={getCommentFormPlaceholder()}
+                    initialText={editingComment?.text ?? ''}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.bottomPanel}>
+                <TaskControlPanel
+                  statusLabel={statusLabel}
+                  taskTypeLabel={taskTypeLabel}
+                  priorityLabel={priorityLabel}
+                  deadlineLabel={deadlineLabel}
+                  assigneeName={assigneeName}
+                  canEdit={shouldShowEditButton}
+                  onEditTask={handleStartEdit}
+                  onBackToBoard={handleBackToBoard}
+                />
+              </div>
 
               <Dialog
                 open={isDeleteDialogOpen}
@@ -415,7 +594,7 @@ function EditTaskPage() {
                   </Button>
                 </DialogActions>
               </Dialog>
-            </Stack>
+            </div>
           )}
     </Container>
   )

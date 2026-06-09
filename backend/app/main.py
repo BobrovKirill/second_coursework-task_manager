@@ -11,6 +11,8 @@ from app.core.database import AsyncSessionLocal
 from app.core.seeds import seed_roles_and_permissions
 from app.api.v1.roles import router as roles
 from app.api.v1.task_attachments import router as task_attachments
+from app.api.v1.comments import router as comments_router
+
 
 # Создание приложения
 app = FastAPI(
@@ -38,7 +40,7 @@ app.include_router(tasks, prefix=settings.API_V1_PREFIX)
 app.include_router(task_attachments, prefix=settings.API_V1_PREFIX)
 app.include_router(columns, prefix=settings.API_V1_PREFIX)
 app.include_router(roles, prefix=settings.API_V1_PREFIX)
-
+app.include_router(comments_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():

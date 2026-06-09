@@ -9,5 +9,7 @@ from app.models.task_attachment import TaskAttachment
 from app.models.project_specialty import ProjectSpecialty
 from app.models.email_action_token import EmailActionToken
 from app.models.project_invitation import ProjectInvitation
+from app.models.comment import Comment
+from app.models.comment_attachment import CommentAttachment
 
-__all__ = ["User", "Project", "ProjectMember", "BoardColumn", "Task", "TaskAttachment", "Role", "RolePermission", "Permission", "ProjectMemberRole", "ProjectSpecialty", "EmailActionToken", "ProjectInvitation"]
+__all__ = ["User", "Project", "ProjectMember", "BoardColumn", "Task", "TaskAttachment", "Role", "RolePermission", "Permission", "ProjectMemberRole", "ProjectSpecialty", "EmailActionToken", "ProjectInvitation", "Comment", "CommentAttachment"]
