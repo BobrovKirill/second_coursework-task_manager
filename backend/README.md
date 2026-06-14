@@ -104,3 +104,11 @@ from_attributes=True
 | Изменить тип задачи | ✅ | ✅ | ✅ | ✅ | ❌ |
 | Просматривать задачи | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Доступ к аналитике | ✅ | ❌ | ❌ | ✅ | ❌ |
+
+## Тестирования
+для запуска тестов
+```bash
+PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -v
+```
+
+входная точка тестов tests/__init__.py
