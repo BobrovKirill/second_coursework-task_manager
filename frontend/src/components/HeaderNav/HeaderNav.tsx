@@ -19,6 +19,7 @@ import { useUserStore } from '../../store/useUserStory.ts'
 import CreateProjectModal from '../CreateProjectModal/index.ts'
 import CollapsibleSection from '../HeaderNavCollaps/HeaderNavCollaps.tsx'
 import MemberModal from '../MemberModal/MemberModal.tsx'
+import { useProjectStore } from '../../store/useProjectsStory.ts'
 import { DRAWER_WIDTH, NAV_ITEMS } from './index.ts'
 
 function HeaderNav({ open, onClose }: NavDrawerProps) {
@@ -29,6 +30,7 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
   const { getLastProjectId, removeLastProjectId } = useUserStore()
   const lastProjectId = getLastProjectId()
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
+  const { fetchProjects } = useProjectStore()
 
   function handleNavClick(path: string) {
     if (path === '/') {
@@ -138,8 +140,8 @@ function HeaderNav({ open, onClose }: NavDrawerProps) {
       <CreateProjectModal
         open={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={() => {
-        // чета добавить можно
+        onSuccess={async () => {
+          await fetchProjects()
         }}
       />
 

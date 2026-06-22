@@ -18,19 +18,22 @@ import { useLocation } from 'react-router-dom'
 import { useMembersStore } from '../../store/useMemberStore.ts'
 import { useProjectStore } from '../../store/useProjectsStory.ts'
 import { useUserStore } from '../../store/useUserStory'
+import type { ProjectListItem, ProjectMember } from '../../types/project.ts'
 
 function CollapsibleSection({ item, onNavigate, onCreateProject, onAddMember }: CollapsibleSectionProps) {
   const { getMembers, fetchMembers, loading } = useMembersStore()
   const [open, setOpen] = useState(false)
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState<(ProjectListItem | ProjectMember)[]>([])
   const [loadingProject, setLoadingProject] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const location = useLocation()
   const { getLastProjectId, getRole } = useUserStore()
-  const { getProjects, fetchProjects } = useProjectStore()
+  const { getProjects, fetchProjects, projects} = useProjectStore()
   const projectId = getLastProjectId()
 
   const isAdmin = getRole() === 'admin'
+
+  const storeProjects = useProjectStore(state => state.projects)
 
   useEffect(() => {
     if (item.isMembers) {
@@ -39,6 +42,21 @@ function CollapsibleSection({ item, onNavigate, onCreateProject, onAddMember }: 
       setError(null)
     }
   }, [location.pathname, item.isMembers])
+
+  useEffect(() => {
+    if (!item.isMembers && open && storeProjects.length > 0) {
+      setItems(storeProjects)
+    }
+  }, [storeProjects, open, item.isMembers])
+
+  useEffect(() => {
+    if (item.isMembers && open && projectId) {
+      const currentMembers = getMembers(projectId)
+      if (currentMembers.length > 0) {
+        setItems(currentMembers)
+      }
+    }
+  }, [item.isMembers, open, projectId, getMembers])
 
   async function handleToggle() {
     if (item.isMembers) {
@@ -70,7 +88,6 @@ function CollapsibleSection({ item, onNavigate, onCreateProject, onAddMember }: 
       }
     }
     else {
-      // твой код для проектов (оставляем как есть)
       if (!open && !items.length) {
         setLoadingProject(true)
         setError(null)

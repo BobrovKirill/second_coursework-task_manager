@@ -51,7 +51,6 @@ function MainPage() {
           open={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
           onSuccess={() => {
-            // чета добавить можно
           }}
         />
       </div>

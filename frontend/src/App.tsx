@@ -1,5 +1,6 @@
 import { createTheme, CssBaseline, ThemeProvider } from '@mui/material'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
 import Layout from './components/Layout'
 import { ROUTES } from './constants/routes'
 import AuthPage from './pages/AuthPage'
@@ -18,12 +19,42 @@ const theme = createTheme({
   },
 })
 
+function AppBackground({ children }: { children: React.ReactNode }) {
+  const location = useLocation()
+  const [backgroundStyle, setBackgroundStyle] = useState<React.CSSProperties>({})
+  
+  useEffect(() => {
+    const handleBgUpdate = (event: CustomEvent) => {
+      setBackgroundStyle(event.detail || {})
+    }
+
+    window.addEventListener('updateAppBackground', handleBgUpdate as EventListener)
+    
+    return () => {
+      window.removeEventListener('updateAppBackground', handleBgUpdate as EventListener)
+    }
+  }, [])
+
+  useEffect(() => {
+    const isProjectPage = /^\/projects\/\d+/.test(location.pathname)
+    if (!isProjectPage) {
+      setBackgroundStyle({})
+    }
+  }, [location.pathname])
+
+  return (
+    <div className={styles.app} style={backgroundStyle}>
+      {children}
+    </div>
+  )
+}
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <div className={styles.app}>
-        <BrowserRouter>
+      <BrowserRouter>
+        <AppBackground>
           <Routes>
             <Route path={ROUTES.AUTH_PATTERN} element={<AuthPage />} />
 
@@ -43,8 +74,8 @@ function App() {
 
             <Route path="*" element={<Navigate to={ROUTES.MAIN} replace />} />
           </Routes>
-        </BrowserRouter>
-      </div>
+        </AppBackground>
+      </BrowserRouter>
     </ThemeProvider>
   )
 }

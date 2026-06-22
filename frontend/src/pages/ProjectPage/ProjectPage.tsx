@@ -11,6 +11,7 @@ import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useProject } from '../../hooks/useProject'
 import { useProjectBackground } from '../../hooks/useProjectBackground'
 import { useProjectFontColor } from '../../hooks/useProjectFontColor'
+import { useEffect } from 'react'
 import styles from './styles.module.css'
 
 function ProjectPage() {
@@ -28,6 +29,45 @@ function ProjectPage() {
   const fontTheme = useProjectFontColor(project?.font_color)
 
   const isSettingsPage = location.pathname.endsWith('/settings')
+
+  useEffect(() => {
+    if (!project) return
+
+    let newBackgroundStyle: React.CSSProperties = {}
+
+    if (project.background_type === 'color' && project.background_value) {
+      newBackgroundStyle = {
+        backgroundImage: 'none',
+        backgroundColor: project.background_value,
+      }
+    } else if (project.background_type === 'gradient' && project.background_value) {
+      const [c1, c2, angle] = project.background_value.split('|')
+      newBackgroundStyle = {
+        backgroundImage: `linear-gradient(${angle || '90'}deg, ${c1 || '#ffffff'}, ${c2 || '#000000'})`,
+        backgroundColor: 'transparent',
+      }
+    } else if (project.background_type === 'image' && project.background_value) {
+      newBackgroundStyle = {
+        backgroundImage: `url(${project.background_value})`,
+        backgroundColor: 'transparent',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+      }
+    } else {
+      newBackgroundStyle = {}
+    }
+
+    window.dispatchEvent(new CustomEvent('updateAppBackground', { 
+      detail: newBackgroundStyle 
+    }))
+
+    return () => {
+      window.dispatchEvent(new CustomEvent('updateAppBackground', { 
+        detail: {} 
+      }))
+    }
+  }, [project?.background_type, project?.background_value])
 
   const handleGoToCreateTask = () => {
     navigate(`/projects/${projectId}/tasks/create`)

@@ -319,7 +319,7 @@ function ProjectSettingsPage() {
 
       setSaveSuccess(true)
       setTimeout(() => {
-        navigate(`/projects/${projectId}/board`)
+        window.location.href = `/projects/${projectId}/board`
       }, 1500)
     }
     catch (err) {
